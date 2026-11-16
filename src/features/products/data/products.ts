@@ -1,0 +1,68 @@
+import type { Product } from '@/features/products/types/product';
+
+export const products: Product[] = [
+  {
+    id: '1',
+    title: 'Wireless Earbuds',
+    price: 1999,
+    rating: 4.6,
+    reviewsCount: 1240,
+    image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&auto=format&fit=crop&q=80',
+  },
+  {
+    id: '2',
+    title: 'Smart Watch',
+    price: 3499,
+    rating: 4.7,
+    reviewsCount: 856,
+    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&auto=format&fit=crop&q=80',
+  },
+  {
+    id: '3',
+    title: 'Travel Backpack',
+    price: 1299,
+    rating: 4.8,
+    reviewsCount: 620,
+    image: 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=600&h=600&auto=format&fit=crop&q=80',
+  },
+  {
+    id: '4',
+    title: 'Running Shoes',
+    price: 2499,
+    rating: 4.5,
+    reviewsCount: 940,
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&auto=format&fit=crop&q=80',
+  },
+  {
+    id: '5',
+    title: 'Bluetooth Speaker',
+    price: 1499,
+    rating: 4.4,
+    reviewsCount: 412,
+    image: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&h=600&auto=format&fit=crop&q=80',
+  },
+  {
+    id: '6',
+    title: 'Gaming Mouse',
+    price: 899,
+    rating: 4.3,
+    reviewsCount: 780,
+    image: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&h=600&auto=format&fit=crop&q=80',
+  },
+  {
+    id: '7',
+    title: 'Pro Headphones',
+    price: 4999,
+    rating: 4.8,
+    reviewsCount: 2100,
+    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&auto=format&fit=crop&q=80',
+  },
+  {
+    id: '8',
+    title: 'Desk Keyboard',
+    price: 1799,
+    rating: 4.9,
+    reviewsCount: 1530,
+    image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&h=600&auto=format&fit=crop&q=80',
+  },
+];

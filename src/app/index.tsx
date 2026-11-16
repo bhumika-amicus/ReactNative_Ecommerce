@@ -1,30 +1,29 @@
-
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Spacing } from '@/constants/theme';
+import { AppHeader } from '@/components/layout/AppHeader';
+import { Colors, Spacing } from '@/constants/theme';
+import { ProductGrid } from '@/features/products/components/ProductGrid';
+import { products } from '@/features/products/data/products';
+import type { Product } from '@/features/products/types/product';
 
 export default function HomeScreen() {
+  const handleAddToCart = (product: Product) => {
+    Alert.alert(
+      'Added to Cart',
+      `${product.title} has been added to your cart.`,
+    );
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.heroSection}>
-        <Text style={styles.title}>
-          Welcome to React Native!
-        </Text>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <AppHeader title="Our Products" />
 
-        <Text style={styles.subtitle}>
-          Build amazing mobile apps with React Native and Expo.
-        </Text>
-
-        <Pressable
-          style={styles.button}
-          onPress={() => Alert.alert('Welcome!', 'You pressed Get Started.')}
-          accessibilityRole="button"
-        >
-          <Text style={styles.buttonText}>
-            Get Started
-          </Text>
-        </Pressable>
+      <View style={styles.content}>
+        <ProductGrid
+          products={products}
+          onAddToCart={handleAddToCart}
+        />
       </View>
     </SafeAreaView>
   );
@@ -33,47 +32,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
-    paddingHorizontal: Spacing.four,
+    backgroundColor: Colors.light.primary,
   },
-
-  heroSection: {
+  content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    width: '100%',
-  },
-
-  title: {
-    fontSize: 36,
-    fontWeight: '700',
-    textAlign: 'center',
-    color: '#111111',
-    marginBottom: Spacing.four,
-  },
-
-  subtitle: {
-    fontSize: 18,
-    lineHeight: 27,
-    textAlign: 'center',
-    color: '#555555',
-    marginBottom: Spacing.four,
-  },
-
-  button: {
-    backgroundColor: '#0866E8',
-    width: '100%',
-    height: 54,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: Spacing.three,
-  },
-
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
+    backgroundColor: Colors.light.background,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.three,
   },
 });
