@@ -1,56 +1,120 @@
-# Welcome to your Expo app 👋
+# React Native eCommerce App 🛍️
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern, high-performance mobile eCommerce catalog application built from scratch using **React Native**, **Expo SDK 58**, and **Expo Router**. 
 
-## Get started
+This project follows **Domain-Driven / Feature-Based Architecture**, utilizing strictly typed components, modern Flexbox layouts, and mobile-first optimization patterns.
 
-1. Install dependencies
+---
 
+## 📱 Features
+
+- **Domain-Driven Architecture**: Structured around business domains (`src/features/products`) to ensure high cohesion and maintainability.
+- **Virtualized Product Grid**: Built with `<FlatList>` (2 columns), featuring view recycling and virtualization to ensure zero-lag scrolling and low memory usage.
+- **Dynamic Flexbox Alignment**: Two-group semantic layout (`justifyContent: 'space-between'`) ensuring all "Add to Cart" buttons and prices are aligned at the bottom across cards without fragile fixed-height hacks.
+- **Hardware-Accelerated Image Caching**: Powered by `expo-image` (using native SDWebImage on iOS and Glide on Android) for smooth transitions and disk caching.
+- **Design System & Theme Tokens**: Single source of truth for colors, spacing, typography scales, and radii (`src/constants/theme.ts`) typed with TypeScript `as const`.
+- **Edge-to-Edge Safe Area Handling**: Integrated with `react-native-safe-area-context` and `expo-status-bar` for seamless top status bar tinting across devices with notches or Dynamic Islands.
+- **Tactile UI Primitives**: Reusable `Card` and `Button` primitives built with `<Pressable>`, dynamic touch feedback states (`({ pressed }) => [...]`), and accessibility roles (`accessibilityRole="button"`).
+- **Vector Iconography**: Crisp SVG icons powered by `lucide-react-native` and `react-native-svg`.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Expo SDK 58](https://expo.dev)
+- **Core Library**: [React Native 0.88](https://reactnative.dev) & [React 19](https://react.dev)
+- **Routing**: [Expo Router](https://docs.expo.dev/router/introduction/) (File-based navigation)
+- **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict mode)
+- **Images**: [`expo-image`](https://docs.expo.dev/versions/latest/sdk/image/)
+- **Icons**: [`lucide-react-native`](https://lucide.dev) & [`react-native-svg`](https://github.com/software-mansion/react-native-svg)
+- **Safe Area**: [`react-native-safe-area-context`](https://github.com/th3rdwave/react-native-safe-area-context)
+
+---
+
+## 📂 Project Architecture
+
+```
+react_native_ecommerce/
+├── app.json                     # Expo manifest (app name, icons, splash, orientation)
+├── tsconfig.json                # TypeScript config with '@/*' path aliases
+├── package.json                 # Project dependencies & scripts
+│
+├── assets/                      # App icons and splash assets
+│   └── images/
+│       ├── icon.png             # App launcher icon
+│       ├── splash-icon.png      # Native splash icon
+│       └── android-icon-*.png   # Android adaptive icons
+│
+└── src/
+    ├── app/                     # Navigation Routes (Expo Router)
+    │   ├── _layout.tsx          # Root shell (Stack navigator & status bar)
+    │   └── index.tsx            # Home screen (Product catalog)
+    │
+    ├── components/              # Shared, Domain-Agnostic UI Primitives
+    │   ├── layout/
+    │   │   └── AppHeader.tsx    # Branded top app header
+    │   └── ui/
+    │       ├── Button.tsx       # Reusable Pressable button with active states
+    │       └── Card.tsx         # Reusable surface card container
+    │
+    ├── constants/               # Design Tokens
+    │   └── theme.ts             # Colors, Typography, Spacing, and Radii
+    │
+    └── features/                # Domain-Specific Feature Modules
+        └── products/
+            ├── components/
+            │   ├── ProductCard.tsx   # Individual product card
+            │   └── ProductGrid.tsx   # 2-column virtualized FlatList
+            ├── data/
+            │   └── products.ts       # Curated product catalog dataset
+            └── types/
+                └── product.ts        # TypeScript interface for Product entity
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (LTS recommended)
+- [Expo Go](https://expo.dev/go) app installed on your physical mobile device (iOS / Android) or an emulator / simulator.
+
+### Installation
+
+1. Clone or open the repository:
+   ```bash
+   cd react_native_ecommerce
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. Start the development server:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Open the app:
+   - **Physical Device**: Scan the QR code displayed in the terminal using the **Expo Go** app (Android) or **Camera** app (iOS).
+   - **Android Emulator**: Press <kbd>a</kbd> in the terminal.
+   - **iOS Simulator**: Press <kbd>i</kbd> in the terminal.
+   - **Web**: Press <kbd>w</kbd> in the terminal.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🧪 Quality & Code Standards
 
-## Get a fresh project
-
-When you're ready, run:
+Run type checking and linting to ensure zero compiler or styling errors:
 
 ```bash
-npm run reset-project
+# Run TypeScript type check
+npx tsc --noEmit
+
+# Run ESLint on the source directory
+npx eslint src
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
