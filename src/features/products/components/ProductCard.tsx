@@ -63,6 +63,7 @@ export default ProductCard;
 
 const styles = StyleSheet.create({
   card: {
+    maxWidth: '49%',
     flex: 1,
   },
   imageContainer: {

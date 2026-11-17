@@ -7,6 +7,7 @@ export const products: Product[] = [
     price: 1999,
     rating: 4.6,
     reviewsCount: 1240,
+    category: 'Audio',
     image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&auto=format&fit=crop&q=80',
   },
   {
@@ -15,6 +16,7 @@ export const products: Product[] = [
     price: 3499,
     rating: 4.7,
     reviewsCount: 856,
+    category: 'Wearables',
     image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&auto=format&fit=crop&q=80',
   },
   {
@@ -23,6 +25,7 @@ export const products: Product[] = [
     price: 1299,
     rating: 4.8,
     reviewsCount: 620,
+    category: 'Accessories',
     image: 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=600&h=600&auto=format&fit=crop&q=80',
   },
   {
@@ -31,6 +34,7 @@ export const products: Product[] = [
     price: 2499,
     rating: 4.5,
     reviewsCount: 940,
+    category: 'Footwear',
     image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&auto=format&fit=crop&q=80',
   },
   {
@@ -39,6 +43,7 @@ export const products: Product[] = [
     price: 1499,
     rating: 4.4,
     reviewsCount: 412,
+    category: 'Audio',
     image: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&h=600&auto=format&fit=crop&q=80',
   },
   {
@@ -47,6 +52,7 @@ export const products: Product[] = [
     price: 899,
     rating: 4.3,
     reviewsCount: 780,
+    category: 'Accessories',
     image: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&h=600&auto=format&fit=crop&q=80',
   },
   {
@@ -55,6 +61,7 @@ export const products: Product[] = [
     price: 4999,
     rating: 4.8,
     reviewsCount: 2100,
+    category: 'Audio',
     image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&auto=format&fit=crop&q=80',
   },
   {
@@ -63,6 +70,7 @@ export const products: Product[] = [
     price: 1799,
     rating: 4.9,
     reviewsCount: 1530,
+    category: 'Accessories',
     image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&h=600&auto=format&fit=crop&q=80',
   },
 ];
