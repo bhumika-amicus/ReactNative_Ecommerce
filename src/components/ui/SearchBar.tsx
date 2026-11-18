@@ -25,7 +25,7 @@ export function SearchBar({
 
   const handleClear = () => {
     onChangeText('');
-    inputRef.current?.blur();
+    inputRef.current?.focus();
   };
 
   return (
