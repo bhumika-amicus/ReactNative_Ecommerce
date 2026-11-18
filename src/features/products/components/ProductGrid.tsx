@@ -27,6 +27,7 @@ export function ProductGrid({
       columnWrapperStyle={styles.row}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      
     />
   );
 }
@@ -35,7 +36,7 @@ export default ProductGrid;
 
 const styles = StyleSheet.create({
   row: {
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
   content: {
     gap: Spacing.three,
