@@ -1,16 +1,38 @@
 import type { PropsWithChildren } from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
-import { StyleSheet, View } from 'react-native';
+import {
+  Platform,
+  type StyleProp,
+  StyleSheet,
+  View,
+  type ViewStyle,
+} from 'react-native';
 
 import { Colors, Radius, Spacing } from '@/constants/theme';
 
-type CardProps = PropsWithChildren<{
+export type CardVariant = 'elevated' | 'bordered' | 'flat';
+export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
+
+export type CardProps = PropsWithChildren<{
+  variant?: CardVariant;
+  padding?: CardPadding;
   style?: StyleProp<ViewStyle>;
 }>;
 
-export function Card({ children, style }: CardProps) {
+export function Card({
+  children,
+  variant = 'bordered',
+  padding = 'md',
+  style,
+}: CardProps) {
   return (
-    <View style={[styles.card, style]}>
+    <View
+      style={[
+        styles.base,
+        variantStyles[variant],
+        paddingStyles[padding],
+        style,
+      ]}
+    >
       {children}
     </View>
   );
@@ -19,11 +41,57 @@ export function Card({ children, style }: CardProps) {
 export default Card;
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.light.surface,
-    borderRadius: Radius.large,
+  base: {
+    borderRadius: Radius.card,
+  },
+});
+
+const paddingStyles = StyleSheet.create({
+  none: {
+    padding: 0,
+  },
+  sm: {
+    padding: Spacing.two, // 8
+  },
+  md: {
     padding: Spacing.three - Spacing.one, // 12
+  },
+  lg: {
+    padding: Spacing.three, // 16
+  },
+});
+
+const variantStyles = StyleSheet.create({
+  elevated: {
+    backgroundColor: Colors.light.surface,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 3,
+      },
+      default: {
+        // web fallback
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 6,
+      },
+    }),
+  },
+  bordered: {
+    backgroundColor: Colors.light.surface,
     borderWidth: 1,
     borderColor: Colors.light.border,
+    overflow: 'hidden',
+  },
+  flat: {
+    backgroundColor: Colors.light.backgroundElement,
+    borderWidth: 0,
+    overflow: 'hidden',
   },
 });

@@ -1,11 +1,10 @@
-import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
-import { Star } from 'lucide-react-native';
+import { ShoppingBag, Star } from 'lucide-react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { Button, Card } from '@/components/ui';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import type { Product } from '@/features/products/types/product';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Colors, Spacing, Typography } from '@/constants/theme';
 
 type ProductCardProps = {
   product: Product;
@@ -17,8 +16,14 @@ export function ProductCard({
   onAddToCart,
 }: ProductCardProps) {
   return (
-    <Card style={styles.card}>
+    <Card variant="elevated" padding="md" style={styles.card}>
       <View style={styles.imageContainer}>
+        {product.category ? (
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryBadgeText}>{product.category}</Text>
+          </View>
+        ) : null}
+
         <Image
           source={{ uri: product.image }}
           style={styles.image}
@@ -51,6 +56,11 @@ export function ProductCard({
         <View style={styles.buttonContainer}>
           <Button
             title="Add to Cart"
+            variant="outline"
+            size="sm"
+            icon={({ color, size }) => (
+              <ShoppingBag size={size} color={color} />
+            )}
             onPress={() => onAddToCart(product)}
           />
         </View>
@@ -71,6 +81,23 @@ const styles = StyleSheet.create({
     height: 120,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  categoryBadge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 1,
+    backgroundColor: Colors.light.backgroundElement,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: Radius.small,
+  },
+  categoryBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: Colors.light.textSecondary,
+    textTransform: 'uppercase',
   },
   image: {
     width: '100%',
@@ -109,6 +136,6 @@ const styles = StyleSheet.create({
     color: Colors.light.textSecondary,
   },
   buttonContainer: {
-    marginTop: Spacing.three,
+    marginTop: Spacing.two,
   },
 });
