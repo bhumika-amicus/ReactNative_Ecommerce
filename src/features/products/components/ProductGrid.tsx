@@ -6,28 +6,21 @@ import type { Product } from '@/features/products/types/product';
 
 type ProductGridProps = {
   products: Product[];
-  onAddToCart: (product: Product, quantity: number) => void;
 };
 
-export function ProductGrid({
-  products,
-  onAddToCart,
-}: ProductGridProps) {
+export function ProductGrid({ products }: ProductGridProps) {
   return (
     <FlatList
       data={products}
-      renderItem={({ item }) => (
-        <ProductCard
-          product={item}
-          onAddToCart={onAddToCart}
-        />
-      )}
+      renderItem={({ item }) => <ProductCard product={item} />}
       keyExtractor={(item) => item.id}
       numColumns={2}
       columnWrapperStyle={styles.row}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
-      
+      initialNumToRender={4}
+      maxToRenderPerBatch={4}
+      windowSize={5}
     />
   );
 }

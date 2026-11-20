@@ -5,17 +5,15 @@ import { ShoppingBag, Star } from 'lucide-react-native';
 
 import { Button, Card, QuantitySelector } from '@/components/ui';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { useCart } from '@/context/CartContext';
 import type { Product } from '@/features/products/types/product';
 
 type ProductCardProps = {
   product: Product;
-  onAddToCart: (product: Product, quantity: number) => void;
 };
 
-export function ProductCard({
-  product,
-  onAddToCart,
-}: ProductCardProps) {
+export function ProductCard({ product }: ProductCardProps) {
+  const { addToCart } = useCart();
   const [quantity, setQuantity] = useState<number>(1);
 
   // Derived state: Dynamic total price
@@ -30,7 +28,10 @@ export function ProductCard({
   };
 
   const handleAddToCartPress = () => {
-    onAddToCart(product, quantity);
+    // 1. Add to global cart context
+    addToCart(product, quantity);
+
+    // 2. User feedback Alert
     Alert.alert(
       'Added to Cart',
       `Added ${quantity} ${quantity === 1 ? 'item' : 'items'} of "${product.title}" to your cart.\n\nTotal: ₹${totalPrice.toLocaleString('en-IN')}`,
@@ -40,14 +41,8 @@ export function ProductCard({
 
   return (
     <Card variant="elevated" padding="md" style={styles.card}>
-      {/* 1. Image & Category Tag */}
+      {/* 1. Image */}
       <View style={styles.imageContainer}>
-        {product.category ? (
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryBadgeText}>{product.category}</Text>
-          </View>
-        ) : null}
-
         <Image
           source={{ uri: product.image }}
           style={styles.image}
@@ -63,11 +58,18 @@ export function ProductCard({
           {product.title}
         </Text>
 
-        {/* Price & Rating Row (Balanced on the same horizontal line) */}
+        {/* Price & Rating Row */}
         <View style={styles.priceRatingRow}>
-          <Text style={styles.totalPrice}>
-            ₹{totalPrice.toLocaleString('en-IN')}
-          </Text>
+          <View style={styles.priceContainer}>
+            <Text style={styles.totalPrice}>
+              ₹{totalPrice.toLocaleString('en-IN')}
+            </Text>
+            {quantity > 1 && (
+              <Text style={styles.unitPrice}>
+                (₹{product.price.toLocaleString('en-IN')} ea)
+              </Text>
+            )}
+          </View>
 
           <View style={styles.ratingBadge}>
             <Star
@@ -119,24 +121,6 @@ const styles = StyleSheet.create({
     height: 110,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-  },
-  categoryBadge: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    zIndex: 1,
-    backgroundColor: Colors.light.backgroundElement,
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: Radius.small,
-  },
-  categoryBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: Colors.light.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   image: {
     width: '100%',
@@ -159,10 +143,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: Spacing.two,
   },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 3,
+  },
   totalPrice: {
     fontSize: Typography.body,
     fontWeight: '700',
     color: Colors.light.text,
+  },
+  unitPrice: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: Colors.light.textSecondary,
   },
   ratingBadge: {
     flexDirection: 'row',
