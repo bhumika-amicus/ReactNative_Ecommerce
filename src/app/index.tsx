@@ -18,12 +18,8 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  const handleAddToCart = (product: Product) => {
-    setCartCount((prev) => prev + 1);
-    Alert.alert(
-      'Added to Cart',
-      `${product.title} has been added to your cart.`,
-    );
+  const handleAddToCart = (product: Product, quantity: number) => {
+    setCartCount((prev) => prev + quantity);
   };
 
   // Derived state: filtered by both Search Text and Category

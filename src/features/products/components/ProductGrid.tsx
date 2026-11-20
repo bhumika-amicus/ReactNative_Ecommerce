@@ -6,7 +6,7 @@ import type { Product } from '@/features/products/types/product';
 
 type ProductGridProps = {
   products: Product[];
-  onAddToCart: (product: Product) => void;
+  onAddToCart: (product: Product, quantity: number) => void;
 };
 
 export function ProductGrid({
