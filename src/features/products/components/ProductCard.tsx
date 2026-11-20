@@ -1,4 +1,4 @@
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { ShoppingBag, Star } from 'lucide-react-native';
@@ -10,9 +10,10 @@ import type { Product } from '@/features/products/types/product';
 
 type ProductCardProps = {
   product: Product;
+  style?: StyleProp<ViewStyle>;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, style }: ProductCardProps) {
   const router = useRouter();
   const { addToCart } = useCart();
 
@@ -33,7 +34,7 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card variant="elevated" padding="none" style={styles.card}>
+    <Card variant="elevated" padding="none" style={[styles.card, style]}>
       {/* Tappable Area to navigate to Product Details Screen */}
       <Pressable onPress={handleCardPress} style={styles.cardInteractive}>
         {/* 1. Edge-to-Edge Hero Image */}

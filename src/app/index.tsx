@@ -1,65 +1,47 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppHeader } from '@/components/layout/AppHeader';
-import { CategoryCard } from '@/components/ui/CategoryCard';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
-import { ProductGrid } from '@/features/products/components/ProductGrid';
-import { products } from '@/features/products/data/products';
-
-const CATEGORIES = ['All', 'Audio', 'Wearables', 'Footwear', 'Accessories'];
+import {
+  FeaturedProductsSection,
+  FooterSection,
+  HeroBanner,
+  PromoBannerGrid,
+  ServiceHighlights,
+  ShopByCategorySection,
+} from '@/components/home';
+import { Colors, Spacing } from '@/constants/theme';
 
 export default function HomeScreen() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-
-  // Derived state: filtered products computed synchronously during render
-  const filteredProducts =
-    selectedCategory === 'All'
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
-
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* 1. Header */}
-      <AppHeader title="Our Products" />
+      {/* 1. Modern White Brand Header with Cart Counter */}
+      <AppHeader title="Trendify" />
 
-      <View style={styles.content}>
-        {/* 2. Category Filters (Horizontal Scroll) */}
-        <View style={styles.categoriesWrapper}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesList}
-          >
-            {CATEGORIES.map((category) => (
-              <CategoryCard
-                key={category}
-                name={category}
-                isSelected={selectedCategory === category}
-                onSelect={setSelectedCategory}
-              />
-            ))}
-          </ScrollView>
-        </View>
+      {/* 2. Responsive Scrollable Home Feed */}
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Section 1: Hero Banner */}
+        <HeroBanner />
 
-        {/* 3. Live Product Count Update Bar */}
-        <View style={styles.countRow}>
-          <Text style={styles.countText}>
-            Showing <Text style={styles.countBold}>{filteredProducts.length}</Text>{' '}
-            {filteredProducts.length === 1 ? 'product' : 'products'}
-          </Text>
+        {/* Section 2: Promo Quick Cards (New Arrivals, Best Sellers, Gift Cards, Sale) */}
+        <PromoBannerGrid />
 
-          {selectedCategory !== 'All' && (
-            <View style={styles.activePill}>
-              <Text style={styles.activePillText}>{selectedCategory}</Text>
-            </View>
-          )}
-        </View>
+        {/* Section 3: Featured Products (Smooth Horizontal Carousel) */}
+        <FeaturedProductsSection />
 
-        {/* 4. Reusable FlatList Product Grid */}
-        <ProductGrid products={filteredProducts} />
-      </View>
+        {/* Section 4: Shop by Category */}
+        <ShopByCategorySection />
+
+        {/* Section 5: Trust & Service Highlights */}
+        <ServiceHighlights />
+
+        {/* Section 6: Footer Navigation & Brand Details */}
+        <FooterSection />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -69,42 +51,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.surface,
   },
-  content: {
+  container: {
     flex: 1,
     backgroundColor: Colors.light.background,
+  },
+  content: {
     paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
-  },
-  categoriesWrapper: {
-    marginBottom: Spacing.two,
-  },
-  categoriesList: {
-    paddingVertical: Spacing.half,
-  },
-  countRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.two,
-  },
-  countText: {
-    fontSize: Typography.small,
-    color: Colors.light.textSecondary,
-    fontWeight: '500',
-  },
-  countBold: {
-    fontWeight: '700',
-    color: Colors.light.text,
-  },
-  activePill: {
-    backgroundColor: Colors.light.backgroundElement,
-    paddingVertical: 2,
-    paddingHorizontal: Spacing.two,
-    borderRadius: Radius.pill,
-  },
-  activePillText: {
-    fontSize: Typography.caption,
-    fontWeight: '700',
-    color: Colors.light.primary,
+    paddingTop: Spacing.three,
+    paddingBottom: Spacing.four,
   },
 });

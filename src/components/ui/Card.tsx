@@ -66,7 +66,7 @@ const variantStyles = StyleSheet.create({
     backgroundColor: Colors.light.surface,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: Colors.light.shadow,
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.08,
         shadowRadius: 8,
@@ -76,7 +76,7 @@ const variantStyles = StyleSheet.create({
       },
       default: {
         // web fallback
-        shadowColor: '#000',
+        shadowColor: Colors.light.shadow,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.08,
         shadowRadius: 6,

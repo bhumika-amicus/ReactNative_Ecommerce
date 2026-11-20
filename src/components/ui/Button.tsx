@@ -196,7 +196,7 @@ const pressedVariantStyles = StyleSheet.create({
     backgroundColor: 'rgba(8, 102, 233, 0.08)',
   },
   danger: {
-    backgroundColor: '#B91C1C',
+    backgroundColor: Colors.light.dangerPressed,
   },
   ghost: {
     backgroundColor: Colors.light.backgroundElement,
