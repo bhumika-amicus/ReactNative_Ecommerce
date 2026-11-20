@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
 import { ShoppingBag, Star } from 'lucide-react-native';
 
-import { Button, Card, QuantitySelector } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useCart } from '@/context/CartContext';
 import type { Product } from '@/features/products/types/product';
@@ -13,98 +13,77 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter();
   const { addToCart } = useCart();
-  const [quantity, setQuantity] = useState<number>(1);
 
-  // Derived state: Dynamic total price
-  const totalPrice = product.price * quantity;
-
-  const handleIncrease = () => {
-    setQuantity((prev) => Math.min(10, prev + 1));
+  const handleCardPress = () => {
+    router.push({
+      pathname: '/product/[id]',
+      params: { id: product.id },
+    });
   };
 
-  const handleDecrease = () => {
-    setQuantity((prev) => Math.max(1, prev - 1));
-  };
-
-  const handleAddToCartPress = () => {
-    // 1. Add to global cart context
-    addToCart(product, quantity);
-
-    // 2. User feedback Alert
+  const handleQuickAdd = () => {
+    addToCart(product, 1);
     Alert.alert(
       'Added to Cart',
-      `Added ${quantity} ${quantity === 1 ? 'item' : 'items'} of "${product.title}" to your cart.\n\nTotal: ₹${totalPrice.toLocaleString('en-IN')}`,
+      `Added 1x "${product.title}" to your cart.\n\nTotal: ₹${product.price.toLocaleString('en-IN')}`,
       [{ text: 'OK' }]
     );
   };
 
   return (
-    <Card variant="elevated" padding="md" style={styles.card}>
-      {/* 1. Image */}
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: product.image }}
-          style={styles.image}
-          contentFit="contain"
-          transition={200}
-        />
-      </View>
+    <Card variant="elevated" padding="none" style={styles.card}>
+      {/* Tappable Area to navigate to Product Details Screen */}
+      <Pressable onPress={handleCardPress} style={styles.cardInteractive}>
+        {/* 1. Edge-to-Edge Hero Image */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: product.image }}
+            style={styles.image}
+            contentFit="cover"
+            transition={200}
+          />
+        </View>
 
-      {/* 2. Content & Actions */}
-      <View style={styles.details}>
-        {/* Title */}
-        <Text style={styles.title} numberOfLines={1}>
-          {product.title}
-        </Text>
-
-        {/* Price & Rating Row */}
-        <View style={styles.priceRatingRow}>
-          <View style={styles.priceContainer}>
-            <Text style={styles.totalPrice}>
-              ₹{totalPrice.toLocaleString('en-IN')}
+        {/* 2. Content with Dedicated Padding */}
+        <View style={styles.details}>
+          <View style={styles.infoWrapper}>
+            <Text style={styles.title} numberOfLines={1}>
+              {product.title}
             </Text>
-            {quantity > 1 && (
-              <Text style={styles.unitPrice}>
-                (₹{product.price.toLocaleString('en-IN')} ea)
+
+            {/* Price & Rating Row */}
+            <View style={styles.priceRatingRow}>
+              <Text style={styles.totalPrice}>
+                ₹{product.price.toLocaleString('en-IN')}
               </Text>
-            )}
+
+              <View style={styles.ratingBadge}>
+                <Star
+                  size={11}
+                  color={Colors.light.star}
+                  fill={Colors.light.star}
+                />
+                <Text style={styles.ratingScore}>{product.rating}</Text>
+              </View>
+            </View>
           </View>
 
-          <View style={styles.ratingBadge}>
-            <Star
-              size={12}
-              color={Colors.light.star}
-              fill={Colors.light.star}
+          {/* Quick Add Button */}
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Add to Cart"
+              variant="primary"
+              size="sm"
+              icon={({ color, size }) => (
+                <ShoppingBag size={size} color={color} />
+              )}
+              onPress={handleQuickAdd}
             />
-            <Text style={styles.ratingScore}>{product.rating}</Text>
           </View>
         </View>
-
-        {/* Quantity Stepper */}
-        <View style={styles.quantitySection}>
-          <QuantitySelector
-            quantity={quantity}
-            onIncrease={handleIncrease}
-            onDecrease={handleDecrease}
-            min={1}
-            max={10}
-          />
-        </View>
-
-        {/* Add to Cart Button */}
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Add to Cart"
-            variant="primary"
-            size="sm"
-            icon={({ color, size }) => (
-              <ShoppingBag size={size} color={color} />
-            )}
-            onPress={handleAddToCartPress}
-          />
-        </View>
-      </View>
+      </Pressable>
     </Card>
   );
 }
@@ -113,12 +92,17 @@ export default ProductCard;
 
 const styles = StyleSheet.create({
   card: {
-    maxWidth: '49%',
+    maxWidth: '48.5%',
+    flex: 1,
+    overflow: 'hidden',
+  },
+  cardInteractive: {
     flex: 1,
   },
   imageContainer: {
     width: '100%',
-    height: 110,
+    height: 150,
+    backgroundColor: Colors.light.backgroundElement,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -127,9 +111,12 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   details: {
+    padding: Spacing.two + 2, // 10px inner padding
     flex: 1,
-    marginTop: Spacing.two,
     justifyContent: 'space-between',
+  },
+  infoWrapper: {
+    marginBottom: Spacing.two,
   },
   title: {
     fontSize: Typography.small,
@@ -139,24 +126,13 @@ const styles = StyleSheet.create({
   },
   priceRatingRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.two,
-  },
-  priceContainer: {
-    flex: 1,
-    marginRight: Spacing.one,
   },
   totalPrice: {
     fontSize: Typography.body,
     fontWeight: '700',
     color: Colors.light.text,
-  },
-  unitPrice: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: Colors.light.textSecondary,
-    marginTop: 1,
   },
   ratingBadge: {
     flexDirection: 'row',
@@ -171,10 +147,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.caption,
     fontWeight: '700',
     color: Colors.light.text,
-  },
-  quantitySection: {
-    marginBottom: Spacing.two,
-    alignItems: 'center',
   },
   buttonContainer: {
     marginTop: 'auto',

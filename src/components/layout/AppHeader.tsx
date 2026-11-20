@@ -1,19 +1,49 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { ShoppingBag } from 'lucide-react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ArrowLeft, ShoppingBag } from 'lucide-react-native';
 
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useCart } from '@/context/CartContext';
 
 type AppHeaderProps = {
   title: string;
+  showBack?: boolean;
+  onBack?: () => void;
 };
 
-export function AppHeader({ title }: AppHeaderProps) {
+export function AppHeader({ title, showBack = false, onBack }: AppHeaderProps) {
+  const router = useRouter();
   const { cartCount } = useCart();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.back();
+    }
+  };
 
   return (
     <View style={styles.header}>
-      <Text style={styles.title}>{title}</Text>
+      <View style={styles.leftContainer}>
+        {showBack && (
+          <Pressable
+            onPress={handleBack}
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.backButton,
+              pressed && styles.backButtonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <ArrowLeft size={22} color={Colors.light.text} />
+          </Pressable>
+        )}
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
+      </View>
 
       <View style={styles.cartContainer}>
         <ShoppingBag size={22} color={Colors.light.text} />
@@ -41,6 +71,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
+  },
+  leftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    flex: 1,
+  },
+  backButton: {
+    padding: Spacing.half,
+    borderRadius: Radius.pill,
+  },
+  backButtonPressed: {
+    backgroundColor: Colors.light.backgroundElement,
   },
   title: {
     fontSize: Typography.title,

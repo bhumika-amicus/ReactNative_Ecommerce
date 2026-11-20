@@ -29,10 +29,10 @@ export default ProductGrid;
 
 const styles = StyleSheet.create({
   row: {
-    gap: Spacing.three,
+    gap: Spacing.two + 4, // 12px
   },
   content: {
-    gap: Spacing.three,
+    gap: Spacing.two + 4, // 12px
     paddingBottom: Spacing.five,
   },
 });
