@@ -139,14 +139,13 @@ const styles = StyleSheet.create({
   },
   priceRatingRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: Spacing.two,
   },
   priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 3,
+    flex: 1,
+    marginRight: Spacing.one,
   },
   totalPrice: {
     fontSize: Typography.body,
@@ -157,6 +156,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '500',
     color: Colors.light.textSecondary,
+    marginTop: 1,
   },
   ratingBadge: {
     flexDirection: 'row',
