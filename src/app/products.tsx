@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
@@ -13,15 +13,16 @@ const CATEGORIES = ['All', 'Audio', 'Wearables', 'Footwear', 'Accessories'];
 
 export default function ProductsScreen() {
   const params = useLocalSearchParams<{ category?: string }>();
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const validParamCategory =
+    params.category && CATEGORIES.includes(params.category)
+      ? params.category
+      : null;
 
-  useEffect(() => {
-    if (params.category && CATEGORIES.includes(params.category)) {
-      setSelectedCategory(params.category);
-    }
-  }, [params.category]);
+  const [userCategory, setUserCategory] = useState<string | null>(null);
 
-  // Derived state: filtered products computed synchronously during render
+  // Derived state without cascading render effects
+  const selectedCategory = userCategory ?? validParamCategory ?? 'All';
+
   const filteredProducts =
     selectedCategory === 'All'
       ? products
@@ -45,7 +46,7 @@ export default function ProductsScreen() {
                 key={category}
                 name={category}
                 isSelected={selectedCategory === category}
-                onSelect={setSelectedCategory}
+                onSelect={setUserCategory}
               />
             ))}
           </ScrollView>
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
   },
   activePill: {
     backgroundColor: Colors.light.backgroundElement,
-    paddingVertical: 2,
+    paddingVertical: Spacing.xxs,
     paddingHorizontal: Spacing.two,
     borderRadius: Radius.pill,
   },

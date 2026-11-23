@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
   },
   categoryPill: {
     backgroundColor: Colors.light.backgroundElement,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingVertical: Spacing.xxs,
+    paddingHorizontal: Spacing.md,
     borderRadius: Radius.pill,
   },
   categoryText: {
-    fontSize: 10,
+    fontSize: Typography.badge,
     fontWeight: '700',
     color: Colors.light.primary,
     textTransform: 'uppercase',
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: Spacing.xs,
   },
   ratingScore: {
     fontSize: Typography.small,
@@ -214,9 +214,9 @@ const styles = StyleSheet.create({
     color: Colors.light.primary,
   },
   taxInclusive: {
-    fontSize: 11,
+    fontSize: Typography.micro,
     color: Colors.light.textSecondary,
-    marginTop: 2,
+    marginTop: Spacing.xxs,
   },
   descriptionContainer: {
     borderTopWidth: 1,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   stepperWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: Spacing.sm,
   },
   stepperLabel: {
     fontSize: Typography.small,

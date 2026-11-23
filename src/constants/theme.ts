@@ -139,15 +139,20 @@ export const Fonts = Platform.select({
 });
 
 export const Typography = {
+  badge: 10,
   caption: 12,
+  sub: 13,
   small: 14,
+  regular: 15,
   body: 16,
   subtitle: 18,
+  title: 20,
   heading: 24,
-  title: 28,
+  display: 28,
 } as const;
 
 export const Spacing = {
+  // Legacy step aliases (for full backward compatibility)
   half: 2,
   one: 4,
   two: 8,
@@ -155,6 +160,23 @@ export const Spacing = {
   four: 24,
   five: 32,
   six: 64,
+
+  // Granular, complete design scale (eliminates token arithmetic)
+  xxs: 2,
+  xs: 4,
+  sm: 6,
+  md: 8,
+  compact: 10,
+  gap: 12,
+  inner: 14,
+  base: 16,
+  gutter: 18,
+  lg: 20,
+  xl: 24,
+  section: 28,
+  xxl: 32,
+  huge: 48,
+  massive: 64,
 } as const;
 
 export const Radius = {

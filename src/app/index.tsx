@@ -58,6 +58,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,
-    paddingBottom: Spacing.four,
+    paddingBottom: Spacing.two,
   },
 });

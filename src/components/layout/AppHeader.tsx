@@ -9,9 +9,17 @@ type AppHeaderProps = {
   title: string;
   showBack?: boolean;
   onBack?: () => void;
+  showCart?: boolean;
+  onCartPress?: () => void;
 };
 
-export function AppHeader({ title, showBack = false, onBack }: AppHeaderProps) {
+export function AppHeader({
+  title,
+  showBack = false,
+  onBack,
+  showCart = true,
+  onCartPress,
+}: AppHeaderProps) {
   const router = useRouter();
   const { cartCount } = useCart();
 
@@ -20,6 +28,14 @@ export function AppHeader({ title, showBack = false, onBack }: AppHeaderProps) {
       onBack();
     } else {
       router.back();
+    }
+  };
+
+  const handleCart = () => {
+    if (onCartPress) {
+      onCartPress();
+    } else {
+      router.push('/cart' as const);
     }
   };
 
@@ -45,16 +61,27 @@ export function AppHeader({ title, showBack = false, onBack }: AppHeaderProps) {
         </Text>
       </View>
 
-      <View style={styles.cartContainer}>
-        <ShoppingBag size={22} color={Colors.light.text} />
-        {cartCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>
-              {cartCount > 99 ? '99+' : cartCount}
-            </Text>
-          </View>
-        )}
-      </View>
+      {showCart && (
+        <Pressable
+          onPress={handleCart}
+          hitSlop={8}
+          style={({ pressed }) => [
+            styles.cartButton,
+            pressed && styles.cartButtonPressed,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={`Shopping cart, ${cartCount} items`}
+        >
+          <ShoppingBag size={22} color={Colors.light.text} />
+          {cartCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {cartCount > 99 ? '99+' : cartCount}
+              </Text>
+            </View>
+          )}
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -90,11 +117,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.light.text,
   },
-  cartContainer: {
+  cartButton: {
     position: 'relative',
-    padding: 6,
+    padding: Spacing.sm,
+    borderRadius: Radius.pill,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  cartButtonPressed: {
+    backgroundColor: Colors.light.backgroundElement,
   },
   badge: {
     position: 'absolute',
@@ -106,11 +137,11 @@ const styles = StyleSheet.create({
     height: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: Spacing.xs,
   },
   badgeText: {
     color: Colors.light.surface,
-    fontSize: 10,
+    fontSize: Typography.badge,
     fontWeight: '700',
   },
 });

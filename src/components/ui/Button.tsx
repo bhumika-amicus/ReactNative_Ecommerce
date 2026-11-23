@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.one + 2,
+    gap: Spacing.sm,
   },
   baseText: {
     fontWeight: '600',
@@ -136,15 +136,15 @@ const styles = StyleSheet.create({
 
 const sizeStyles = StyleSheet.create({
   sm: {
-    paddingVertical: Spacing.one + 2,
+    paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.two,
   },
   md: {
-    paddingVertical: 10,
+    paddingVertical: Spacing.compact,
     paddingHorizontal: Spacing.three,
   },
   lg: {
-    paddingVertical: Spacing.two + 4,
+    paddingVertical: Spacing.gap,
     paddingHorizontal: Spacing.four,
   },
 });

@@ -1,15 +1,16 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { CreditCard, Headphones, Truck } from 'lucide-react-native';
 
+import { Card } from '@/components/ui';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 
 export function ServiceHighlights() {
   return (
-    <View style={styles.container}>
+    <Card variant="bordered" padding="none" style={styles.card}>
       {/* 1. Secure Pay */}
       <View style={styles.column}>
         <View style={styles.iconBadge}>
-          <CreditCard size={18} color={Colors.light.info} />
+          <CreditCard size={16} color={Colors.light.primary} />
         </View>
         <Text style={styles.title}>Secure Pay</Text>
         <Text style={styles.subtitle}>100% Safe</Text>
@@ -20,7 +21,7 @@ export function ServiceHighlights() {
       {/* 2. 24/7 Support */}
       <View style={styles.column}>
         <View style={styles.iconBadge}>
-          <Headphones size={18} color={Colors.light.warning} />
+          <Headphones size={16} color={Colors.light.primary} />
         </View>
         <Text style={styles.title}>24/7 Help</Text>
         <Text style={styles.subtitle}>Live Care</Text>
@@ -31,31 +32,24 @@ export function ServiceHighlights() {
       {/* 3. Fast Shipping */}
       <View style={styles.column}>
         <View style={styles.iconBadge}>
-          <Truck size={18} color={Colors.light.accentGreen} />
+          <Truck size={16} color={Colors.light.primary} />
         </View>
         <Text style={styles.title}>Fast Ship</Text>
         <Text style={styles.subtitle}>Tracked</Text>
       </View>
-    </View>
+    </Card>
   );
 }
 
 export default ServiceHighlights;
 
 const styles = StyleSheet.create({
-  container: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.light.surfaceDark,
-    borderRadius: Radius.card + 4,
-    paddingVertical: Spacing.three,
+    paddingVertical: Spacing.inner,
     paddingHorizontal: Spacing.two,
     marginBottom: Spacing.four,
-    shadowColor: Colors.light.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 3,
   },
   column: {
     flex: 1,
@@ -63,30 +57,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconBadge: {
-    width: 34,
-    height: 34,
+    width: 32,
+    height: 32,
     borderRadius: Radius.pill,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: Colors.light.promos.blue.bg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: Spacing.xs,
   },
   title: {
     fontSize: Typography.caption,
     fontWeight: '700',
-    color: Colors.light.textInverse,
+    color: Colors.light.text,
     textAlign: 'center',
-    marginBottom: 1,
+    marginBottom: Spacing.xxs,
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: Typography.badge,
     fontWeight: '500',
-    color: Colors.light.textInverseMuted,
+    color: Colors.light.textSecondary,
     textAlign: 'center',
   },
   divider: {
     width: 1,
-    height: 38,
-    backgroundColor: Colors.light.borderInverse,
+    height: 32,
+    backgroundColor: Colors.light.border,
   },
 });

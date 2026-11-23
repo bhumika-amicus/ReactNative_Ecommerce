@@ -40,7 +40,7 @@ export default CategoryCard;
 
 const styles = StyleSheet.create({
   card: {
-    paddingVertical: Spacing.one + 2,
+    paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.pill,
     marginRight: Spacing.two,

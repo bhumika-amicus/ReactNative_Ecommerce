@@ -1,9 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronRight } from 'lucide-react-native';
 
 import { Card } from '@/components/ui';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Colors, Spacing, Typography } from '@/constants/theme';
 
 export type CategoryItem = {
   id: string | number;
@@ -37,7 +36,7 @@ export function ShopByCategorySection({
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Shop by Category</Text>
 
-      {/* Clean, API-ready 2-column Category Cards */}
+      {/* Modern, clean centered category tiles */}
       <View style={styles.grid}>
         {categories.map((cat) => (
           <Pressable
@@ -52,7 +51,6 @@ export function ShopByCategorySection({
           >
             <Card variant="bordered" padding="none" style={styles.card}>
               <Text style={styles.categoryName}>{cat.name}</Text>
-              <ChevronRight size={16} color={Colors.light.textSecondary} />
             </Card>
           </Pressable>
         ))}
@@ -65,7 +63,7 @@ export default ShopByCategorySection;
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.four + 4,
+    marginBottom: Spacing.section,
   },
   sectionTitle: {
     fontSize: Typography.subtitle,
@@ -87,17 +85,15 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.985 }],
   },
   card: {
-    height: 52,
-    flexDirection: 'row',
+    height: 50,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: Spacing.three,
-    borderRadius: Radius.card,
-    backgroundColor: Colors.light.surface,
   },
   categoryName: {
     fontSize: Typography.small,
     fontWeight: '700',
     color: Colors.light.text,
+    letterSpacing: 0.2,
   },
 });

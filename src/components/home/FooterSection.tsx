@@ -16,28 +16,28 @@ export default FooterSection;
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: Spacing.four,
-    paddingBottom: Spacing.six,
+    paddingTop: Spacing.three,
+    paddingBottom: Spacing.two,
     borderTopWidth: 1,
     borderTopColor: Colors.light.border,
     alignItems: 'center',
   },
   brandName: {
-    fontSize: Typography.subtitle,
-    fontWeight: '900',
+    fontSize: Typography.body,
+    fontWeight: '800',
     fontStyle: 'italic',
     letterSpacing: 0.5,
     color: Colors.light.text,
-    marginBottom: 4,
+    marginBottom: Spacing.xxs,
   },
   tagline: {
-    fontSize: Typography.caption,
+    fontSize: Typography.micro,
     color: Colors.light.textSecondary,
     textAlign: 'center',
-    marginBottom: Spacing.two,
+    marginBottom: Spacing.xs,
   },
   copyright: {
-    fontSize: 11,
+    fontSize: Typography.badge,
     color: Colors.light.textSecondary,
   },
 });

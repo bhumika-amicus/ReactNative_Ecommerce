@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.two + 4,
+    marginBottom: Spacing.gap,
   },
   title: {
     fontSize: Typography.subtitle,
@@ -70,12 +70,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: Typography.caption,
     color: Colors.light.textSecondary,
-    marginTop: 2,
+    marginTop: Spacing.xxs,
   },
   seeAllBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: Spacing.xs,
   },
   seeAllText: {
     fontSize: Typography.small,

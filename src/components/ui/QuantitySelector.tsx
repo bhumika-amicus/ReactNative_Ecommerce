@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.light.backgroundElement,
     borderRadius: Radius.pill,
-    paddingHorizontal: 2,
-    paddingVertical: 2,
+    paddingHorizontal: Spacing.xxs,
+    paddingVertical: Spacing.xxs,
     alignSelf: 'center',
   },
   stepButton: {

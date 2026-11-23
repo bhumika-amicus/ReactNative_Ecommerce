@@ -48,13 +48,13 @@ const styles = StyleSheet.create({
 
 const paddingStyles = StyleSheet.create({
   none: {
-    padding: 0,
+    padding: Spacing.none,
   },
   sm: {
     padding: Spacing.two, // 8
   },
   md: {
-    padding: Spacing.three - Spacing.one, // 12
+    padding: Spacing.gap, // 12
   },
   lg: {
     padding: Spacing.three, // 16
