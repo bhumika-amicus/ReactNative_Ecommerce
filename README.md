@@ -170,4 +170,17 @@ Transition the application from static local mock datasets to a live, asynchrono
 - **The Problem**: Mixing React Native core `<Image>` with `expo-image` causes cache misses. Even if the catalog downloaded an image, the detail screen re-downloads it over the network, rendering a jarring blank white box while loading.
 - **The Solution**: Standardizing on `expo-image` with `cachePolicy="memory-disk"` and `transition={200}`. Images cached by the catalog grid are instantly reused by the detail screen directly from RAM in 0ms with a smooth cross-fade animation.
 
+### 6. Modern `async/await` Pattern in `useEffect` (Inner Async Function)
+- **The Rule**: `useEffect(async () => ...)` is strictly invalid in React because an `async` function implicitly returns a `Promise`, whereas React requires `useEffect` to return either `undefined` or a synchronous cleanup function.
+- **The Solution**: Declare an inner `async function loadData() { ... }` inside the effect, invoke it immediately (`loadData()`), and return the cleanup function `() => controller.abort()`.
+- **Avoiding Cascading Render Warnings**: Avoid calling synchronous `setState` calls (such as `setLoading(true)`) immediately inside the effect body before the `await`. Let the initial state values handle the first render, and only update state in response to resolved async promises.
+
+### 7. User-Facing Error Normalization (`getFriendlyErrorMessage`)
+- **The Principle**: Never leak raw technical messages or HTTP status codes (`"Request failed with status 400/500"`) into customer-facing mobile interfaces.
+- **The Implementation**: An error normalization adapter in `src/services/apiClient.ts` that maps technical exceptions to human-friendly actionable guidance:
+  - `404` &rarr; *"We couldn't find what you were looking for. It may have been removed."*
+  - `5xx` &rarr; *"Our store servers are currently experiencing issues. Please try again shortly."*
+  - `4xx` &rarr; *"Unable to load products at this time. Please try again."*
+  - Offline/Network drop &rarr; *"Unable to connect to the store. Please check your internet connection."*
+
 ---

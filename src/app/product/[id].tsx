@@ -1,7 +1,7 @@
-import { useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
+import { useLocalSearchParams } from 'expo-router';
 import { AlertCircle, ShoppingBag, Star } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,43 +18,54 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useCart } from '@/context/CartContext';
 import { fetchProductById } from '@/features/products/services/productService';
 import type { Product } from '@/features/products/types/product';
+import { getFriendlyErrorMessage } from '@/services/apiClient';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { addToCart } = useCart();
 
-  // Standard React state machine for async data fetching
+  // 1. Core State Machine for Async Data Fetching
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  useEffect(() => {
-    if (!id) return;
-    const controller = new AbortController();
-
-    fetchProductById(id, controller.signal)
-      .then((data) => {
+  /**
+   * Extracted loadProduct callback enables both initial load and user-triggered "Try Again"
+   */
+  const loadProduct = useCallback(
+    async (signal?: AbortSignal) => {
+      if (!id) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchProductById(id, signal);
         setProduct(data);
         setError(null);
-      })
-      .catch((err: unknown) => {
+      } catch (err: unknown) {
         if (err instanceof Error && err.name === 'AbortError') return;
-        setError(err instanceof Error ? err.message : 'Product not found');
-      })
-      .finally(() => {
+        setError(getFriendlyErrorMessage(err));
+      } finally {
         setLoading(false);
-      });
+      }
+    },
+    [id]
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadProduct(controller.signal);
 
     return () => {
       controller.abort();
     };
-  }, [id]);
+  }, [loadProduct]);
 
+  // ─── STATE A: Initial Loading ────────────────────────────────────
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <AppHeader title="Loading..." showBack />
+        <AppHeader title="Product Details" showBack />
         <View style={styles.centeredContainer}>
           <ActivityIndicator size="large" color={Colors.light.primary} />
           <Text style={styles.loadingText}>Fetching product details...</Text>
@@ -63,18 +74,31 @@ export default function ProductDetailScreen() {
     );
   }
 
+  // ─── STATE B: Error State with Retry Button ──────────────────────
   if (error || !product) {
+    const isNotFound =
+      error?.toLowerCase().includes('not find') || error?.includes('404');
+
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <AppHeader title="Not Found" showBack />
+        <AppHeader title="Product Details" showBack />
         <View style={styles.centeredContainer}>
           <View style={styles.errorIconCircle}>
             <AlertCircle size={36} color={Colors.light.danger} />
           </View>
-          <Text style={styles.errorTitle}>Product Not Found</Text>
-          <Text style={styles.errorMessage}>
-            {error ?? "We couldn't find the product you're looking for."}
+          <Text style={styles.errorTitle}>
+            {isNotFound ? 'Product Not Found' : 'Something went wrong'}
           </Text>
+          <Text style={styles.errorMessage}>
+            {error ?? "We couldn't load the product you're looking for."}
+          </Text>
+          <Button
+            title="Try Again"
+            variant="primary"
+            size="md"
+            onPress={() => loadProduct()}
+            style={styles.retryButton}
+          />
         </View>
       </SafeAreaView>
     );
@@ -91,10 +115,11 @@ export default function ProductDetailScreen() {
     );
   };
 
+  // ─── STATE C: Success State with Full Details ────────────────────
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      {/* 1. Header with Back Button */}
-      <AppHeader title={product.title} showBack />
+      {/* 1. Header with Back Button (Clean, stable title across states) */}
+      <AppHeader title="Product Details" showBack />
 
       {/* 2. Scrollable Product Details */}
       <ScrollView
@@ -340,14 +365,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  notFoundContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notFoundText: {
-    fontSize: Typography.body,
-    color: Colors.light.textSecondary,
+  retryButton: {
+    marginTop: Spacing.three,
+    paddingHorizontal: Spacing.four,
   },
 });
-

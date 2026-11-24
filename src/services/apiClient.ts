@@ -73,3 +73,24 @@ export const apiClient = {
     apiRequest<T>(endpoint, { ...options, method: 'GET' }),
 };
 
+
+export function getFriendlyErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 404) {
+      return "We couldn't find what you were looking for. It may have been removed.";
+    }
+    if (err.status && err.status >= 500) {
+      return 'Our store servers are currently experiencing issues. Please try again shortly.';
+    }
+    if (err.status && err.status >= 400) {
+      return 'Unable to load products at this time. Please try again.';
+    }
+  }
+
+  if (err instanceof Error && err.name === 'AbortError') {
+    return '';
+  }
+
+  return 'Unable to connect to the store. Please check your internet connection.';
+}
+

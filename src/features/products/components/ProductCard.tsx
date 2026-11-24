@@ -50,7 +50,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
         </View>
 
         <View style={styles.infoWrapper}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={styles.title} numberOfLines={2}>
             {product.title}
           </Text>
 
@@ -68,7 +68,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
       {/* Zone 2: Independent Action Row (Price + Add Button - Completely decoupled) */}
       <View style={styles.bottomRow}>
         <Text style={styles.totalPrice}>
-          ₹{product.price.toLocaleString('en-IN')}
+          ${product.price.toFixed(2)}
         </Text>
 
         <Button
@@ -121,6 +121,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.light.text,
     marginBottom: Spacing.xs,
+    minHeight: 36, // Ensures 1-line and 2-line titles occupy identical space for grid symmetry
+    lineHeight: 18,
   },
   ratingBadge: {
     flexDirection: 'row',

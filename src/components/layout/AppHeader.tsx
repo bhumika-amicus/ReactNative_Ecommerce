@@ -90,18 +90,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.two,
     flex: 1,
+    marginRight: Spacing.two, // Prevents long titles from colliding with cart button
   },
   backButton: {
-    padding: Spacing.half,
+    padding: Spacing.xs,
     borderRadius: Radius.pill,
   },
   backButtonPressed: {
     backgroundColor: Colors.light.backgroundElement,
   },
   title: {
-    fontSize: Typography.title,
+    fontSize: Typography.subtitle, // 18px clean mobile app-bar size
     fontWeight: '700',
     color: Colors.light.text,
+    flex: 1, // Allows text to properly shrink and ellipsize (...) without pushing into the cart icon
   },
   cartContainer: {
     position: 'relative',

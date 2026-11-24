@@ -1,4 +1,5 @@
-import { FlatList, RefreshControl, StyleSheet } from 'react-native';
+import { useCallback } from 'react';
+import { FlatList, ListRenderItemInfo, RefreshControl, StyleSheet } from 'react-native';
 
 import { Colors, Spacing } from '@/constants/theme';
 import { ProductCard } from '@/features/products/components/ProductCard';
@@ -15,11 +16,25 @@ export function ProductGrid({
   refreshing = false,
   onRefresh,
 }: ProductGridProps) {
+  /**
+   * Day 6 Optimization: Memoize renderItem to prevent re-allocating a new anonymous
+   * function on every parent render or scroll tick, allowing FlatList to recycle cells smoothly.
+   */
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<Product>) => <ProductCard product={item} />,
+    []
+  );
+
+  /**
+   * KeyExtractor guarantees a stable, unique string ID for FlatList virtualization.
+   */
+  const keyExtractor = useCallback((item: Product) => item.id, []);
+
   return (
     <FlatList
       data={products}
-      renderItem={({ item }) => <ProductCard product={item} />}
-      keyExtractor={(item) => item.id}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
       numColumns={2}
       columnWrapperStyle={styles.row}
       contentContainerStyle={styles.content}

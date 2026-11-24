@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,66 +18,81 @@ import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { ProductGrid } from '@/features/products/components/ProductGrid';
 import { fetchProducts } from '@/features/products/services/productService';
 import type { Product } from '@/features/products/types/product';
+import { getFriendlyErrorMessage } from '@/services/apiClient';
 
 export default function ProductsScreen() {
   const params = useLocalSearchParams<{ category?: string }>();
 
-  // 1. Core Async States
+  // 1. Core Async States (Assignment 7: loading, error, success, refresh)
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [userCategory, setUserCategory] = useState<string | null>(null);
 
-  // 2. Initial Mount Lifecycle: Promise-based async resolution avoids cascading synchronous setState in effect
+  /**
+   * 2. Initial Mount Lifecycle (Assignment 7: useEffect + AbortController cleanup)
+   * Automatically aborts in-flight fetch when navigating away from the screen.
+   */
   useEffect(() => {
     const controller = new AbortController();
 
-    fetchProducts(controller.signal)
-      .then((data) => {
+    async function loadData() {
+      try {
+        const data = await fetchProducts(controller.signal);
         setProducts(data);
         setError(null);
-      })
-      .catch((err: unknown) => {
+      } catch (err: unknown) {
+        // Native AbortError: User navigated away; ignore silently without error flash
         if (err instanceof Error && err.name === 'AbortError') return;
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Unable to load products. Please check your network connection.'
-        );
-      })
-      .finally(() => {
+        setError(getFriendlyErrorMessage(err));
+      } finally {
         setLoading(false);
-      });
+      }
+    }
+
+    loadData();
 
     return () => {
       controller.abort();
     };
   }, []);
 
-  // 3. User-triggered reload handler (Retry button or pull-to-refresh)
-  const handleReload = useCallback(async () => {
+  /**
+   * 3. User-Triggered Reload Handler (Assignment 7: Refresh & Retry functionality)
+   *
+   * Mobile UX Best Practice (Day 6 Topic #6):
+   * When pulling down to refresh an existing catalog, if the network drops,
+   * we must NOT wipe existing products off screen. We keep them and alert the user.
+   */
+  const handleReload = useCallback(async (isPullToRefresh = false) => {
     try {
-      setError(null);
+      if (!isPullToRefresh) setError(null);
+
       const data = await fetchProducts();
       setProducts(data);
+      setError(null);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to load products. Please check your network connection.'
-      );
+
+      const message = getFriendlyErrorMessage(err);
+      if (isPullToRefresh && products.length > 0) {
+        Alert.alert('Refresh Failed', message);
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [products.length]);
 
-  // 4. Pull-to-refresh trigger
+  /**
+   * 4. Pull-to-Refresh Trigger (Assignment 7: RefreshControl)
+   */
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    handleReload();
+    handleReload(true);
   }, [handleReload]);
 
   // 5. Dynamically derived categories from live API products
@@ -111,8 +127,8 @@ export default function ProductsScreen() {
     );
   }
 
-  // ─── STATE B: Error State with Retry ─────────────────────────────
-  if (error && !loading) {
+  // ─── STATE B: Full-Page Error State with Retry (Only if initial load fails and 0 products exist) ───
+  if (error && !loading && products.length === 0) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <AppHeader title="All Products" showBack />
@@ -128,7 +144,7 @@ export default function ProductsScreen() {
             size="md"
             onPress={() => {
               setLoading(true);
-              handleReload();
+              handleReload(false);
             }}
             style={styles.retryButton}
           />
