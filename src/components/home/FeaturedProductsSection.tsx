@@ -28,14 +28,45 @@ export function FeaturedProductsSection({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadFeatured = useCallback(async (signal?: AbortSignal) => {
+  /**
+   * Initial Mount & Home Refresh Lifecycle:
+   * Avoids synchronous setState inside effect body to eliminate cascading render warnings.
+   */
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadData() {
+      try {
+        const data = await fetchProducts(controller.signal);
+        const topRated = data.filter((p) => p.rating >= 4.0).slice(0, 6);
+        setFeatured(topRated.length > 0 ? topRated : data.slice(0, 6));
+        setError(null);
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        setError('Unable to load featured products');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+
+    return () => {
+      controller.abort();
+    };
+  }, [refreshTrigger]);
+
+  /**
+   * User-triggered inline retry handler
+   */
+  const handleRetry = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      const data = await fetchProducts(signal);
-      // Top rated picks (rating >= 4.0, max 6 items)
+      const data = await fetchProducts();
       const topRated = data.filter((p) => p.rating >= 4.0).slice(0, 6);
       setFeatured(topRated.length > 0 ? topRated : data.slice(0, 6));
+      setError(null);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === 'AbortError') return;
       setError('Unable to load featured products');
@@ -43,15 +74,6 @@ export function FeaturedProductsSection({
       setLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    loadFeatured(controller.signal);
-
-    return () => {
-      controller.abort();
-    };
-  }, [loadFeatured, refreshTrigger]);
 
   return (
     <View style={styles.container}>
@@ -84,7 +106,7 @@ export function FeaturedProductsSection({
           <AlertCircle size={18} color={Colors.light.danger} />
           <Text style={styles.errorText}>{error}</Text>
           <Pressable
-            onPress={() => loadFeatured()}
+            onPress={handleRetry}
             style={styles.inlineRetryBtn}
             accessibilityRole="button"
           >

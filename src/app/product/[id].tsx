@@ -31,15 +31,16 @@ export default function ProductDetailScreen() {
   const [quantity, setQuantity] = useState(1);
 
   /**
-   * Extracted loadProduct callback enables both initial load and user-triggered "Try Again"
+   * Initial Mount Lifecycle: Async fetch with AbortController cleanup.
+   * Avoids synchronous setState in effect body (prevents cascading render warnings).
    */
-  const loadProduct = useCallback(
-    async (signal?: AbortSignal) => {
-      if (!id) return;
-      setLoading(true);
-      setError(null);
+  useEffect(() => {
+    if (!id) return;
+    const controller = new AbortController();
+
+    async function loadData() {
       try {
-        const data = await fetchProductById(id, signal);
+        const data = await fetchProductById(id, controller.signal);
         setProduct(data);
         setError(null);
       } catch (err: unknown) {
@@ -48,18 +49,33 @@ export default function ProductDetailScreen() {
       } finally {
         setLoading(false);
       }
-    },
-    [id]
-  );
+    }
 
-  useEffect(() => {
-    const controller = new AbortController();
-    loadProduct(controller.signal);
+    loadData();
 
     return () => {
       controller.abort();
     };
-  }, [loadProduct]);
+  }, [id]);
+
+  /**
+   * User-triggered retry handler (from Try Again button)
+   */
+  const handleRetry = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchProductById(id);
+      setProduct(data);
+      setError(null);
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      setError(getFriendlyErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
   // ─── STATE A: Initial Loading ────────────────────────────────────
   if (loading) {
@@ -96,7 +112,7 @@ export default function ProductDetailScreen() {
             title="Try Again"
             variant="primary"
             size="md"
-            onPress={() => loadProduct()}
+            onPress={handleRetry}
             style={styles.retryButton}
           />
         </View>
