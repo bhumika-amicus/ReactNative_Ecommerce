@@ -118,3 +118,19 @@ npx eslint src
 ```
 
 ---
+
+## 📦 Assignment 7: REST API Integration (`fakestoreapi.com`)
+
+### Objective
+Transition the application from static local mock datasets to a live, asynchronous REST API architecture utilizing `useEffect`, `fetch`, resilient state modeling (loading/error/success), pull-to-refresh (`RefreshControl`), and proper lifecycle cleanup with `AbortController`.
+
+### Implementation Roadmap & Architecture
+- [x] **Step 1: API Contract Modeling & Adapter Pattern**
+  - **Problem**: Raw third-party API contracts (`https://fakestoreapi.com/products`) have nested structures (`rating: { rate, count }`), numeric IDs (`id: 1`), and optional fields that can cause runtime null-pointer crashes in UI components.
+  - **Solution**: Defined `ApiProduct` and implemented an Adapter function `mapApiProductToProduct()` that maps raw payloads into our clean, string-keyed `Product` domain model with defensive nullish coalescing defaults (`??`).
+- [ ] **Step 2: REST API Service Implementation (`fetch` + `AbortSignal`)**
+- [ ] **Step 3: Async State Modeling (`idle` / `loading` / `error` / `success`)**
+- [ ] **Step 4: Screen Integration & Pull-to-Refresh (`RefreshControl`)**
+- [ ] **Step 5: Dynamic Category Filtering with Live API Data**
+
+---
