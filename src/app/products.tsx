@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ElementRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Alert,
   Pressable,
@@ -48,6 +55,25 @@ export default function ProductsScreen() {
     isFiltered,
     filteredProducts,
   } = useProductFilters(products);
+
+  // 3. Category Horizontal Auto-Scroll (Centers selected category on mount or tap)
+  const categoryScrollRef = useRef<ElementRef<typeof ScrollView>>(null);
+  const categoryOffsets = useRef<Record<string, number>>({});
+
+  const scrollToCategory = useCallback((cat: string) => {
+    const x = categoryOffsets.current[cat.toLowerCase()];
+    if (x !== undefined && categoryScrollRef.current) {
+      categoryScrollRef.current.scrollTo({
+        x: Math.max(0, x - 16),
+        animated: true,
+      });
+    }
+  }, []);
+
+  const handleResetFilters = useCallback(() => {
+    resetFilters();
+    categoryScrollRef.current?.scrollTo({ x: 0, animated: true });
+  }, [resetFilters]);
 
   /**
    * 3. Initial Mount Lifecycle (useEffect + AbortController cleanup)
@@ -138,7 +164,7 @@ export default function ProductsScreen() {
         <View style={styles.content}>
           <SearchBar
             value=""
-            onChangeText={() => {}}
+            onChangeText={() => { }}
             placeholder="Search products..."
             style={styles.searchBar}
           />
@@ -194,6 +220,7 @@ export default function ProductsScreen() {
         {categories.length > 1 && (
           <View style={styles.categoriesWrapper}>
             <ScrollView
+              ref={categoryScrollRef}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoriesList}
@@ -201,7 +228,7 @@ export default function ProductsScreen() {
               {/* Leading Clear All Pill (appears dynamically when filters are active) */}
               {isFiltered && (
                 <Pressable
-                  onPress={resetFilters}
+                  onPress={handleResetFilters}
                   style={({ pressed }) => [
                     styles.clearAllPill,
                     pressed && styles.clearAllPillPressed,
@@ -216,14 +243,36 @@ export default function ProductsScreen() {
 
               {/* Category Pills with Active Highlighting */}
               {categories.map((category) => (
-                <CategoryCard
+                <View
                   key={category}
-                  name={category}
-                  isSelected={
-                    selectedCategory.toLowerCase() === category.toLowerCase()
-                  }
-                  onSelect={setSelectedCategory}
-                />
+                  onLayout={(e) => {
+                    const x = e.nativeEvent.layout.x;
+                    categoryOffsets.current[category.toLowerCase()] = x;
+
+                    // When the initially selected category is measured, bring it into view immediately!
+                    if (
+                      selectedCategory.toLowerCase() ===
+                      category.toLowerCase() &&
+                      x > 0
+                    ) {
+                      categoryScrollRef.current?.scrollTo({
+                        x: Math.max(0, x - 16),
+                        animated: true,
+                      });
+                    }
+                  }}
+                >
+                  <CategoryCard
+                    name={category}
+                    isSelected={
+                      selectedCategory.toLowerCase() === category.toLowerCase()
+                    }
+                    onSelect={(cat) => {
+                      setSelectedCategory(cat);
+                      scrollToCategory(cat);
+                    }}
+                  />
+                </View>
               ))}
             </ScrollView>
           </View>
@@ -258,12 +307,11 @@ export default function ProductsScreen() {
               title="No products found"
               message={
                 searchQuery.trim()
-                  ? `No products matching "${searchQuery}"${
-                      selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''
-                    }.`
+                  ? `No products matching "${searchQuery}"${selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''
+                  }.`
                   : `No products available in ${selectedCategory}.`
               }
-              onAction={resetFilters}
+              onAction={handleResetFilters}
             />
           }
         />

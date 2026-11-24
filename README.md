@@ -201,9 +201,13 @@ npx eslint src
 - **The Problem**: A spinning circle on a blank screen increases perceived wait times by 40% because users focus purely on the wait. When data finally arrives, the sudden appearance of 2-column cards causes visual layout shock.
 - **The Decision**: We built `ProductCardSkeleton` and `ProductGridSkeleton` with gentle 60fps native pulse animations (`Animated` with `useNativeDriver: true`). Shoppers immediately see the 2-column structure of the store, and live products swap in smoothly without layout shift.
 
-### 10. Seamless Home-to-Catalog Search Transition (`autoFocus` Flow)
-- **The UX Friction**: Tapping a search trigger on the home screen signals clear intent: *the user wants to type!* If the catalog screen opens with the keyboard down, the user is forced to tap the search input a frustrating second time.
-- **The Decision**: Tapping Home's search bar passes `params: { autoFocus: 'true' }`. The `SearchBar` component forwards `autoFocus` to React Native's native `<TextInput>`, automatically sliding the mobile keyboard up ready for typing. Normal browsing navigation (via Hero or Category cards) keeps `autoFocus` disabled for relaxed browsing.
+### 10. Seamless Header Search Transition (`autoFocus` Flow)
+- **The UX Friction**: When tapping a search icon in the top header, the user signals immediate intent: *I want to search, so let me type!* If the catalog opens with the keyboard down, the user is forced to tap the search input a frustrating second time.
+- **The Decision**: Tapping the header's search icon passes `params: { autoFocus: 'true' }`. The `SearchBar` on `/products` forwards `autoFocus` to React Native's native `<TextInput>`, automatically sliding the mobile keyboard up ready for typing. Normal browsing navigation (via Hero or Category cards) keeps `autoFocus` disabled for relaxed browsing.
+
+### 11. Automatic Category Carousel Auto-Scroll (`onLayout` + `scrollTo`)
+- **The UX Friction**: When a user selects a category from Home that sits further down the list (e.g. *Women's Fashion* is the 5th chip), horizontal `ScrollView` by default mounts at $x = 0$. The active chip sits hidden off-screen to the right, forcing users to manually swipe right just to see their active selection.
+- **The Decision**: We attached React Native's native `onLayout` event to each category chip to record its exact horizontal pixel coordinate. When the active category is measured, the `ScrollView` automatically glides to bring that active chip directly into view. When filters are cleared, it smoothly scrolls back to $x = 0$ (*All*).
 
 ---
 

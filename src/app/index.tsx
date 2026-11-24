@@ -1,15 +1,10 @@
 import { useCallback, useState } from 'react';
 import {
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
-  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Search } from 'lucide-react-native';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import {
@@ -20,10 +15,9 @@ import {
   ServiceHighlights,
   ShopByCategorySection,
 } from '@/components/home';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 
 export default function HomeScreen() {
-  const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -43,37 +37,10 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* 1. Modern White Brand Header with Cart Counter */}
-      <AppHeader title="Trendify" />
+      {/* 1. Header with Search Icon Button & Cart Counter */}
+      <AppHeader title="Trendify" showSearch />
 
-      {/* 2. Top Search Trigger Bar (Tapping navigates directly to /products with autoFocus) */}
-      <View style={styles.searchContainer}>
-        <Pressable
-          onPress={() =>
-            router.push({
-              pathname: '/products',
-              params: { autoFocus: 'true' },
-            })
-          }
-          style={({ pressed }) => [
-            styles.searchTrigger,
-            pressed && styles.searchTriggerPressed,
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Search products, electronics, fashion"
-        >
-          <Search
-            size={18}
-            color={Colors.light.textSecondary}
-            style={styles.searchIcon}
-          />
-          <Text style={styles.searchPlaceholder}>
-            Search products, electronics, fashion...
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* 3. Responsive Scrollable Home Feed with Pull-to-Refresh */}
+      {/* 2. Responsive Scrollable Home Feed with Pull-to-Refresh */}
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -115,31 +82,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.surface,
   },
-  searchContainer: {
-    backgroundColor: Colors.light.surface,
-    paddingHorizontal: Spacing.three,
-    paddingBottom: Spacing.two,
-  },
-  searchTrigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.light.backgroundElement,
-    borderRadius: Radius.button,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    paddingHorizontal: Spacing.three,
-    height: 44,
-  },
-  searchTriggerPressed: {
-    opacity: 0.8,
-  },
-  searchIcon: {
-    marginRight: Spacing.two,
-  },
-  searchPlaceholder: {
-    fontSize: Typography.body,
-    color: Colors.light.textSecondary,
-  },
   container: {
     flex: 1,
     backgroundColor: Colors.light.background,
@@ -148,5 +90,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,
     paddingBottom: Spacing.two,
+    gap: Spacing.four,
   },
 });

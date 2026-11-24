@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, ShoppingBag } from 'lucide-react-native';
+import { ArrowLeft, Search, ShoppingBag } from 'lucide-react-native';
 
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useCart } from '@/context/CartContext';
@@ -10,6 +10,8 @@ type AppHeaderProps = {
   showBack?: boolean;
   onBack?: () => void;
   onCartPress?: () => void;
+  showSearch?: boolean;
+  onSearchPress?: () => void;
 };
 
 export function AppHeader({
@@ -17,6 +19,8 @@ export function AppHeader({
   showBack = false,
   onBack,
   onCartPress,
+  showSearch = false,
+  onSearchPress,
 }: AppHeaderProps) {
   const router = useRouter();
   const { cartCount } = useCart();
@@ -26,6 +30,17 @@ export function AppHeader({
       onBack();
     } else {
       router.back();
+    }
+  };
+
+  const handleSearch = () => {
+    if (onSearchPress) {
+      onSearchPress();
+    } else {
+      router.push({
+        pathname: '/products',
+        params: { autoFocus: 'true' },
+      });
     }
   };
 
@@ -51,23 +66,40 @@ export function AppHeader({
         </Text>
       </View>
 
-      <Pressable
-        onPress={onCartPress}
-        disabled={!onCartPress}
-        hitSlop={8}
-        style={styles.cartContainer}
-        accessibilityRole="button"
-        accessibilityLabel={`Shopping cart, ${cartCount} items`}
-      >
-        <ShoppingBag size={22} color={Colors.light.text} />
-        {cartCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>
-              {cartCount > 99 ? '99+' : cartCount}
-            </Text>
-          </View>
+      <View style={styles.rightContainer}>
+        {showSearch && (
+          <Pressable
+            onPress={handleSearch}
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.iconButton,
+              pressed && styles.iconButtonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Search catalog"
+          >
+            <Search size={22} color={Colors.light.text} />
+          </Pressable>
         )}
-      </Pressable>
+
+        <Pressable
+          onPress={onCartPress}
+          disabled={!onCartPress}
+          hitSlop={8}
+          style={styles.cartContainer}
+          accessibilityRole="button"
+          accessibilityLabel={`Shopping cart, ${cartCount} items`}
+        >
+          <ShoppingBag size={22} color={Colors.light.text} />
+          {cartCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {cartCount > 99 ? '99+' : cartCount}
+              </Text>
+            </View>
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -104,6 +136,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.light.text,
     flex: 1, // Allows text to properly shrink and ellipsize (...) without pushing into the cart icon
+  },
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  iconButton: {
+    padding: Spacing.sm,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconButtonPressed: {
+    backgroundColor: Colors.light.backgroundElement,
   },
   cartContainer: {
     position: 'relative',
