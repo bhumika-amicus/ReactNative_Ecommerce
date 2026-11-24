@@ -9,7 +9,6 @@ type AppHeaderProps = {
   title: string;
   showBack?: boolean;
   onBack?: () => void;
-  showCart?: boolean;
   onCartPress?: () => void;
 };
 
@@ -17,7 +16,6 @@ export function AppHeader({
   title,
   showBack = false,
   onBack,
-  showCart = true,
   onCartPress,
 }: AppHeaderProps) {
   const router = useRouter();
@@ -28,14 +26,6 @@ export function AppHeader({
       onBack();
     } else {
       router.back();
-    }
-  };
-
-  const handleCart = () => {
-    if (onCartPress) {
-      onCartPress();
-    } else {
-      router.push('/cart' as const);
     }
   };
 
@@ -61,27 +51,23 @@ export function AppHeader({
         </Text>
       </View>
 
-      {showCart && (
-        <Pressable
-          onPress={handleCart}
-          hitSlop={8}
-          style={({ pressed }) => [
-            styles.cartButton,
-            pressed && styles.cartButtonPressed,
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel={`Shopping cart, ${cartCount} items`}
-        >
-          <ShoppingBag size={22} color={Colors.light.text} />
-          {cartCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {cartCount > 99 ? '99+' : cartCount}
-              </Text>
-            </View>
-          )}
-        </Pressable>
-      )}
+      <Pressable
+        onPress={onCartPress}
+        disabled={!onCartPress}
+        hitSlop={8}
+        style={styles.cartContainer}
+        accessibilityRole="button"
+        accessibilityLabel={`Shopping cart, ${cartCount} items`}
+      >
+        <ShoppingBag size={22} color={Colors.light.text} />
+        {cartCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>
+              {cartCount > 99 ? '99+' : cartCount}
+            </Text>
+          </View>
+        )}
+      </Pressable>
     </View>
   );
 }
@@ -117,15 +103,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.light.text,
   },
-  cartButton: {
+  cartContainer: {
     position: 'relative',
     padding: Spacing.sm,
     borderRadius: Radius.pill,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  cartButtonPressed: {
-    backgroundColor: Colors.light.backgroundElement,
   },
   badge: {
     position: 'absolute',

@@ -1,3 +1,5 @@
+import { useLocalSearchParams } from 'expo-router';
+import { ShoppingBag, Star } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   Alert,
@@ -7,9 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ShoppingBag, Star } from 'lucide-react-native';
 
 import { AppHeader } from '@/components/layout/AppHeader';
 import { Button, QuantitySelector } from '@/components/ui';
