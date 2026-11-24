@@ -140,6 +140,7 @@ export const Fonts = Platform.select({
 
 export const Typography = {
   badge: 10,
+  micro: 11,
   caption: 12,
   sub: 13,
   small: 14,
@@ -162,6 +163,7 @@ export const Spacing = {
   six: 64,
 
   // Granular, complete design scale (eliminates token arithmetic)
+  none: 0,
   xxs: 2,
   xs: 4,
   sm: 6,
