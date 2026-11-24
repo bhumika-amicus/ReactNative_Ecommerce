@@ -1,9 +1,10 @@
 import { useLocalSearchParams } from 'expo-router';
-import { ShoppingBag, Star } from 'lucide-react-native';
-import { useState } from 'react';
+import { Image } from 'expo-image';
+import { AlertCircle, ShoppingBag, Star } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,21 +16,65 @@ import { AppHeader } from '@/components/layout/AppHeader';
 import { Button, QuantitySelector } from '@/components/ui';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { useCart } from '@/context/CartContext';
-import { products } from '@/features/products/data/products';
+import { fetchProductById } from '@/features/products/services/productService';
+import type { Product } from '@/features/products/types/product';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { addToCart } = useCart();
+
+  // Standard React state machine for async data fetching
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  const product = products.find((p) => p.id === id);
+  useEffect(() => {
+    if (!id) return;
+    const controller = new AbortController();
 
-  if (!product) {
+    fetchProductById(id, controller.signal)
+      .then((data) => {
+        setProduct(data);
+        setError(null);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        setError(err instanceof Error ? err.message : 'Product not found');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <AppHeader title="Loading..." showBack />
+        <View style={styles.centeredContainer}>
+          <ActivityIndicator size="large" color={Colors.light.primary} />
+          <Text style={styles.loadingText}>Fetching product details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !product) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <AppHeader title="Not Found" showBack />
-        <View style={styles.notFoundContainer}>
-          <Text style={styles.notFoundText}>Product not found</Text>
+        <View style={styles.centeredContainer}>
+          <View style={styles.errorIconCircle}>
+            <AlertCircle size={36} color={Colors.light.danger} />
+          </View>
+          <Text style={styles.errorTitle}>Product Not Found</Text>
+          <Text style={styles.errorMessage}>
+            {error ?? "We couldn't find the product you're looking for."}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -41,7 +86,7 @@ export default function ProductDetailScreen() {
     addToCart(product, quantity);
     Alert.alert(
       'Added to Cart',
-      `Added ${quantity} ${quantity === 1 ? 'item' : 'items'} of "${product.title}" to your cart.\n\nTotal: ₹${totalPrice.toLocaleString('en-IN')}`,
+      `Added ${quantity} ${quantity === 1 ? 'item' : 'items'} of "${product.title}" to your cart.\n\nTotal: $${totalPrice.toFixed(2)}`,
       [{ text: 'OK' }]
     );
   };
@@ -57,12 +102,14 @@ export default function ProductDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Large Product Image */}
+        {/* Large Product Image with Shared Hardware-Accelerated Cache */}
         <View style={styles.imageCard}>
           <Image
             source={{ uri: product.image }}
             style={styles.heroImage}
-            resizeMode="cover"
+            contentFit="contain"
+            cachePolicy="memory-disk"
+            transition={200}
           />
         </View>
 
@@ -88,7 +135,7 @@ export default function ProductDetailScreen() {
 
           <View style={styles.priceContainer}>
             <Text style={styles.price}>
-              ₹{product.price.toLocaleString('en-IN')}
+              ${product.price.toFixed(2)}
             </Text>
             <Text style={styles.taxInclusive}>Inclusive of all taxes</Text>
           </View>
@@ -97,7 +144,8 @@ export default function ProductDetailScreen() {
           <View style={styles.descriptionContainer}>
             <Text style={styles.sectionHeading}>About this product</Text>
             <Text style={styles.description}>
-              Crafted for premium performance and modern living. Features high-grade durable materials, sleek ergonomics, and dependable everyday quality.
+              {product.description ||
+                'Crafted for premium performance and modern living. Features high-grade durable materials, sleek ergonomics, and dependable everyday quality.'}
             </Text>
           </View>
         </View>
@@ -118,7 +166,7 @@ export default function ProductDetailScreen() {
 
         <View style={styles.ctaButtonWrapper}>
           <Button
-            title={`Add • ₹${totalPrice.toLocaleString('en-IN')}`}
+            title={`Add • $${totalPrice.toFixed(2)}`}
             variant="primary"
             size="md"
             icon={({ color, size }) => (
@@ -257,6 +305,40 @@ const styles = StyleSheet.create({
   },
   ctaButtonWrapper: {
     flex: 1,
+  },
+  centeredContainer: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.four,
+  },
+  loadingText: {
+    marginTop: Spacing.gap,
+    fontSize: Typography.small,
+    color: Colors.light.textSecondary,
+    fontWeight: '500',
+  },
+  errorIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.light.backgroundElement,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.gap,
+  },
+  errorTitle: {
+    fontSize: Typography.subtitle,
+    fontWeight: '700',
+    color: Colors.light.text,
+    marginBottom: Spacing.xs,
+  },
+  errorMessage: {
+    fontSize: Typography.small,
+    color: Colors.light.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   notFoundContainer: {
     flex: 1,

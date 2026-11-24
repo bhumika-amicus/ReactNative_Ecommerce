@@ -1,14 +1,20 @@
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 import { ProductCard } from '@/features/products/components/ProductCard';
 import type { Product } from '@/features/products/types/product';
 
 type ProductGridProps = {
   products: Product[];
+  refreshing?: boolean;
+  onRefresh?: () => void;
 };
 
-export function ProductGrid({ products }: ProductGridProps) {
+export function ProductGrid({
+  products,
+  refreshing = false,
+  onRefresh,
+}: ProductGridProps) {
   return (
     <FlatList
       data={products}
@@ -21,6 +27,17 @@ export function ProductGrid({ products }: ProductGridProps) {
       initialNumToRender={4}
       maxToRenderPerBatch={4}
       windowSize={5}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.light.primary}
+            colors={[Colors.light.primary]}
+            progressBackgroundColor={Colors.light.surface}
+          />
+        ) : undefined
+      }
     />
   );
 }

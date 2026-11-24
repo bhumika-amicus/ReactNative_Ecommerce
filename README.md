@@ -60,15 +60,18 @@ react_native_ecommerce/
     ├── constants/               # Design Tokens
     │   └── theme.ts             # Colors, Typography, Spacing, and Radii
     │
+    ├── services/                # Global Infrastructure & Network
+    │   └── apiClient.ts         # Centralized Singleton HTTP Client & ApiError
+    │
     └── features/                # Domain-Specific Feature Modules
         └── products/
             ├── components/
             │   ├── ProductCard.tsx   # Individual product card
-            │   └── ProductGrid.tsx   # 2-column virtualized FlatList
-            ├── data/
-            │   └── products.ts       # Curated product catalog dataset
+            │   └── ProductGrid.tsx   # 2-column virtualized FlatList with RefreshControl
+            ├── services/
+            │   └── productService.ts # REST API integration & memory-first cache
             └── types/
-                └── product.ts        # TypeScript interface for Product entity
+                └── product.ts        # Domain models & Adapter mapper function
 ```
 
 ---
@@ -128,9 +131,43 @@ Transition the application from static local mock datasets to a live, asynchrono
 - [x] **Step 1: API Contract Modeling & Adapter Pattern**
   - **Problem**: Raw third-party API contracts (`https://fakestoreapi.com/products`) have nested structures (`rating: { rate, count }`), numeric IDs (`id: 1`), and optional fields that can cause runtime null-pointer crashes in UI components.
   - **Solution**: Defined `ApiProduct` and implemented an Adapter function `mapApiProductToProduct()` that maps raw payloads into our clean, string-keyed `Product` domain model with defensive nullish coalescing defaults (`??`).
-- [ ] **Step 2: REST API Service Implementation (`fetch` + `AbortSignal`)**
-- [ ] **Step 3: Async State Modeling (`idle` / `loading` / `error` / `success`)**
-- [ ] **Step 4: Screen Integration & Pull-to-Refresh (`RefreshControl`)**
-- [ ] **Step 5: Dynamic Category Filtering with Live API Data**
+- [x] **Step 2: Generic `apiClient` & `productService` with `AbortSignal`**
+  - **Architecture**: Created centralized `src/services/apiClient.ts` to manage `BASE_URL`, standard JSON headers, automatic `response.ok` status validation, and error normalization.
+  - **Industry-Standard Error Handling**: Implemented custom `ApiError extends Error` enabling type-safe `instanceof ApiError` narrowing in UI components while preserving native stack traces.
+  - **Cancellation Support**: Supported native `signal?: AbortSignal` across all requests to cancel in-flight HTTP requests when screens unmount.
+  - **Pure Service Layer**: `productService.ts` provides clean, stateless API methods (`fetchProducts`, `fetchProductById`) cleanly separating network transport from React components.
+- [x] **Step 3: Async State Modeling (`loading` / `error` / `success`)**
+  - **State Segregation**: Separated initial screen `loading` from pull-to-refresh `refreshing` to prevent full-screen flashing when refreshing an active catalog.
+  - **Guaranteed Cleanup**: Used `try ... catch ... finally` to guarantee `setLoading(false)` and `setRefreshing(false)` always execute, preventing stuck spinners on network drops.
+  - **Resilient Retry UI**: Implemented an error fallback state rendering an alert badge, human-readable error description, and an active **"Try Again"** button.
+- [x] **Step 4: Screen Integration & Pull-to-Refresh (`RefreshControl`)**
+  - **Component Wiring**: Integrated live `fetchProducts` into `src/app/products.tsx` with `useEffect` and `AbortController` cleanup.
+  - **Native Pull-to-Refresh**: Connected native `RefreshControl` through `ProductGrid.tsx` to `<FlatList>`, properly themed with `tintColor` (iOS) and `colors` (Android).
+- [x] **Step 5: Dynamic Category Filtering with Live API Data**
+  - **Dynamic Derivation**: Replaced fragile hardcoded categories with dynamic extraction (`['All', ...new Set(products.map(p => p.category))]`) so the UI automatically aligns with live FakeStore categories.
+
+---
+
+## 🧠 Core Architectural Concepts & Design Patterns Learned
+
+### 1. The Singleton Pattern (`apiClient`)
+- **Concept**: Centralizes all networking into a single instance (`src/services/apiClient.ts`).
+- **Why it matters**: Eliminates duplication of `BASE_URL`, default JSON headers, and HTTP status checking across files. Adding new verbs (`POST`, `PUT`, `DELETE`) is centralized in one place.
+
+### 2. The Adapter / Mapper Pattern
+- **Concept**: A pure transformer function (`mapApiProductToProduct`) that sits between external HTTP payloads and internal UI components.
+- **Why it matters**: Protects components (`ProductCard`, `FlatList`) from third-party schema drift, handles numeric to string ID conversions, and enforces safe fallbacks for optional or nested objects (like `rating.rate ?? 0`).
+
+### 3. Custom Error Hierarchy: `class ApiError extends Error`
+- **Concept**: Subclassing JavaScript's native `Error` to store metadata (`status?: number`, `data?: unknown`).
+- **`instanceof` vs `typeof`**: `typeof` only identifies primitives and returns `"object"` for all errors. `instanceof ApiError` inspects the prototype chain, allowing TypeScript to narrow types safely in `catch` blocks while preserving native V8 engine call stacks (`err.stack`).
+
+### 4. `AbortController` Request Lifecycle
+- **Concept**: Passing `controller.signal` into `fetch()` and calling `controller.abort()` in `useEffect`'s cleanup return.
+- **Why it matters**: Automatically cancels in-flight HTTP requests if the user navigates away before the network responds, saving battery, cellular bandwidth, and preventing state updates on unmounted screens.
+
+### 5. Shared Image Caching Architecture (`expo-image`)
+- **The Problem**: Mixing React Native core `<Image>` with `expo-image` causes cache misses. Even if the catalog downloaded an image, the detail screen re-downloads it over the network, rendering a jarring blank white box while loading.
+- **The Solution**: Standardizing on `expo-image` with `cachePolicy="memory-disk"` and `transition={200}`. Images cached by the catalog grid are instantly reused by the detail screen directly from RAM in 0ms with a smooth cross-fade animation.
 
 ---

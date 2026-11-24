@@ -1,33 +1,143 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
+import { AlertCircle } from 'lucide-react-native';
 
 import { AppHeader } from '@/components/layout/AppHeader';
+import { Button } from '@/components/ui/Button';
 import { CategoryCard } from '@/components/ui/CategoryCard';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { ProductGrid } from '@/features/products/components/ProductGrid';
-import { products } from '@/features/products/data/products';
-
-const CATEGORIES = ['All', 'Audio', 'Wearables', 'Footwear', 'Accessories'];
+import { fetchProducts } from '@/features/products/services/productService';
+import type { Product } from '@/features/products/types/product';
 
 export default function ProductsScreen() {
   const params = useLocalSearchParams<{ category?: string }>();
+
+  // 1. Core Async States
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [userCategory, setUserCategory] = useState<string | null>(null);
+
+  // 2. Initial Mount Lifecycle: Promise-based async resolution avoids cascading synchronous setState in effect
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetchProducts(controller.signal)
+      .then((data) => {
+        setProducts(data);
+        setError(null);
+      })
+      .catch((err: unknown) => {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Unable to load products. Please check your network connection.'
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  // 3. User-triggered reload handler (Retry button or pull-to-refresh)
+  const handleReload = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await fetchProducts();
+      setProducts(data);
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to load products. Please check your network connection.'
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  // 4. Pull-to-refresh trigger
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    handleReload();
+  }, [handleReload]);
+
+  // 5. Dynamically derived categories from live API products
+  const categories = useMemo(() => {
+    const unique = Array.from(new Set(products.map((p) => p.category)));
+    return ['All', ...unique];
+  }, [products]);
+
+  // 6. Selected category calculation
   const validParamCategory =
-    params.category && CATEGORIES.includes(params.category)
+    params.category && categories.includes(params.category)
       ? params.category
       : null;
 
-  const [userCategory, setUserCategory] = useState<string | null>(null);
-
-  // Derived state without cascading render effects
   const selectedCategory = userCategory ?? validParamCategory ?? 'All';
 
-  const filteredProducts =
-    selectedCategory === 'All'
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+  const filteredProducts = useMemo(() => {
+    if (selectedCategory === 'All') return products;
+    return products.filter((p) => p.category === selectedCategory);
+  }, [products, selectedCategory]);
 
+  // ─── STATE A: Initial Loading State ──────────────────────────────
+  if (loading && !refreshing) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <AppHeader title="All Products" showBack />
+        <View style={styles.centeredContainer}>
+          <ActivityIndicator size="large" color={Colors.light.primary} />
+          <Text style={styles.loadingText}>Loading products...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ─── STATE B: Error State with Retry ─────────────────────────────
+  if (error && !loading) {
+    return (
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <AppHeader title="All Products" showBack />
+        <View style={styles.centeredContainer}>
+          <View style={styles.errorIconCircle}>
+            <AlertCircle size={36} color={Colors.light.danger} />
+          </View>
+          <Text style={styles.errorTitle}>Something went wrong</Text>
+          <Text style={styles.errorMessage}>{error}</Text>
+          <Button
+            title="Try Again"
+            variant="primary"
+            size="md"
+            onPress={() => {
+              setLoading(true);
+              handleReload();
+            }}
+            style={styles.retryButton}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ─── STATE C: Success State with Products Grid ───────────────────
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       {/* 1. Header with Back Button */}
@@ -35,22 +145,24 @@ export default function ProductsScreen() {
 
       <View style={styles.content}>
         {/* 2. Category Filters (Horizontal Scroll) */}
-        <View style={styles.categoriesWrapper}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesList}
-          >
-            {CATEGORIES.map((category) => (
-              <CategoryCard
-                key={category}
-                name={category}
-                isSelected={selectedCategory === category}
-                onSelect={setUserCategory}
-              />
-            ))}
-          </ScrollView>
-        </View>
+        {categories.length > 1 && (
+          <View style={styles.categoriesWrapper}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoriesList}
+            >
+              {categories.map((category) => (
+                <CategoryCard
+                  key={category}
+                  name={category}
+                  isSelected={selectedCategory === category}
+                  onSelect={setUserCategory}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* 3. Live Product Count Update Bar */}
         <View style={styles.countRow}>
@@ -66,8 +178,12 @@ export default function ProductsScreen() {
           )}
         </View>
 
-        {/* 4. Reusable FlatList Product Grid */}
-        <ProductGrid products={filteredProducts} />
+        {/* 4. Reusable FlatList Product Grid with Pull-to-Refresh */}
+        <ProductGrid
+          products={filteredProducts}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
       </View>
     </SafeAreaView>
   );
@@ -83,6 +199,44 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
+  },
+  centeredContainer: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.four,
+  },
+  loadingText: {
+    marginTop: Spacing.gap,
+    fontSize: Typography.small,
+    color: Colors.light.textSecondary,
+    fontWeight: '500',
+  },
+  errorIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.light.backgroundElement,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.gap,
+  },
+  errorTitle: {
+    fontSize: Typography.subtitle,
+    fontWeight: '700',
+    color: Colors.light.text,
+    marginBottom: Spacing.xs,
+  },
+  errorMessage: {
+    fontSize: Typography.small,
+    color: Colors.light.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: Spacing.three,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing.four,
   },
   categoriesWrapper: {
     marginBottom: Spacing.two,

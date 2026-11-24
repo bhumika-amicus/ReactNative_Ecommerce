@@ -1,16 +1,46 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowRight } from 'lucide-react-native';
 
 import { Colors, Spacing, Typography } from '@/constants/theme';
 import { ProductCard } from '@/features/products/components/ProductCard';
-import { products } from '@/features/products/data/products';
+import { fetchProducts } from '@/features/products/services/productService';
+import type { Product } from '@/features/products/types/product';
 
 export function FeaturedProductsSection() {
   const router = useRouter();
 
-  // Filter top rated products (rating >= 4.6)
-  const featured = products.filter((p) => p.rating >= 4.6);
+  const [featured, setFeatured] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetchProducts(controller.signal)
+      .then((data) => {
+        // Top rated picks (rating >= 4.0, max 6 items)
+        const topRated = data.filter((p) => p.rating >= 4.0).slice(0, 6);
+        setFeatured(topRated.length > 0 ? topRated : data.slice(0, 6));
+      })
+      .catch((err: unknown) => {
+        if (err instanceof Error && err.name === 'AbortError') return;
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -33,19 +63,25 @@ export function FeaturedProductsSection() {
       </View>
 
       {/* Horizontal Carousel */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {featured.map((product) => (
-          <ProductCard
-            key={product.id}
-            product={product}
-            style={styles.productCard}
-          />
-        ))}
-      </ScrollView>
+      {loading && featured.length === 0 ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={Colors.light.primary} />
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {featured.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              style={styles.productCard}
+            />
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -90,6 +126,11 @@ const styles = StyleSheet.create({
   productCard: {
     width: 190,
     maxWidth: 190,
+  },
+  loadingContainer: {
+    height: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

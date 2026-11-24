@@ -7,13 +7,14 @@ import { Colors, Spacing, Typography } from '@/constants/theme';
 export type CategoryItem = {
   id: string | number;
   name: string;
+  label?: string;
 };
 
 const DEFAULT_CATEGORIES: CategoryItem[] = [
-  { id: '1', name: 'Audio' },
-  { id: '2', name: 'Wearables' },
-  { id: '3', name: 'Footwear' },
-  { id: '4', name: 'Accessories' },
+  { id: '1', name: 'electronics', label: 'Electronics' },
+  { id: '2', name: 'jewelery', label: 'Jewelry' },
+  { id: '3', name: "men's clothing", label: "Men's Fashion" },
+  { id: '4', name: "women's clothing", label: "Women's Fashion" },
 ];
 
 type ShopByCategorySectionProps = {
@@ -47,10 +48,12 @@ export function ShopByCategorySection({
               pressed && styles.cardPressed,
             ]}
             accessibilityRole="button"
-            accessibilityLabel={`Category ${cat.name}`}
+            accessibilityLabel={`Category ${cat.label ?? cat.name}`}
           >
             <Card variant="bordered" padding="none" style={styles.card}>
-              <Text style={styles.categoryName}>{cat.name}</Text>
+              <Text style={styles.categoryName} numberOfLines={1}>
+                {cat.label ?? cat.name}
+              </Text>
             </Card>
           </Pressable>
         ))}
