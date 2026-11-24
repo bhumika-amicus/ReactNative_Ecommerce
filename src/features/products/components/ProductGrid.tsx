@@ -1,5 +1,11 @@
 import { useCallback } from 'react';
-import { FlatList, ListRenderItemInfo, RefreshControl, StyleSheet } from 'react-native';
+import {
+  FlatList,
+  FlatListProps,
+  ListRenderItemInfo,
+  RefreshControl,
+  StyleSheet,
+} from 'react-native';
 
 import { Colors, Spacing } from '@/constants/theme';
 import { ProductCard } from '@/features/products/components/ProductCard';
@@ -9,12 +15,14 @@ type ProductGridProps = {
   products: Product[];
   refreshing?: boolean;
   onRefresh?: () => void;
+  ListEmptyComponent?: FlatListProps<Product>['ListEmptyComponent'];
 };
 
 export function ProductGrid({
   products,
   refreshing = false,
   onRefresh,
+  ListEmptyComponent,
 }: ProductGridProps) {
   /**
    * Day 6 Optimization: Memoize renderItem to prevent re-allocating a new anonymous
@@ -36,9 +44,15 @@ export function ProductGrid({
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       numColumns={2}
-      columnWrapperStyle={styles.row}
-      contentContainerStyle={styles.content}
+      columnWrapperStyle={products.length > 0 ? styles.row : undefined}
+      contentContainerStyle={[
+        styles.content,
+        products.length === 0 && styles.emptyContent,
+      ]}
+      ListEmptyComponent={ListEmptyComponent}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
       initialNumToRender={4}
       maxToRenderPerBatch={4}
       windowSize={5}
@@ -66,5 +80,9 @@ const styles = StyleSheet.create({
   content: {
     gap: Spacing.gap,
     paddingBottom: Spacing.five,
+  },
+  emptyContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
 });

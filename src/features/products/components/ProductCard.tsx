@@ -47,21 +47,22 @@ export function ProductCard({ product, style }: ProductCardProps) {
             contentFit="cover"
             transition={200}
           />
+
+          {/* Floating Rating Badge in Top-Left (Leaves Top-Right free for Wishlist) */}
+          <View style={styles.floatingRatingBadge}>
+            <Star
+              size={10}
+              color={Colors.light.star}
+              fill={Colors.light.star}
+            />
+            <Text style={styles.ratingScore}>{product.rating}</Text>
+          </View>
         </View>
 
         <View style={styles.infoWrapper}>
           <Text style={styles.title} numberOfLines={2}>
             {product.title}
           </Text>
-
-          <View style={styles.ratingBadge}>
-            <Star
-              size={11}
-              color={Colors.light.star}
-              fill={Colors.light.star}
-            />
-            <Text style={styles.ratingScore}>{product.rating}</Text>
-          </View>
         </View>
       </Pressable>
 
@@ -124,15 +125,19 @@ const styles = StyleSheet.create({
     minHeight: 36, // Ensures 1-line and 2-line titles occupy identical space for grid symmetry
     lineHeight: 18,
   },
-  ratingBadge: {
+  floatingRatingBadge: {
+    position: 'absolute',
+    top: Spacing.sm,
+    left: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xxs,
-    alignSelf: 'flex-start',
-    backgroundColor: Colors.light.backgroundElement,
-    paddingVertical: Spacing.xxs,
+    backgroundColor: Colors.light.surface,
+    paddingVertical: 2,
     paddingHorizontal: Spacing.sm,
     borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
   },
   ratingScore: {
     fontSize: Typography.caption,

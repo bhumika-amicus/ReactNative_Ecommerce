@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,29 +9,48 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
-import { AlertCircle } from 'lucide-react-native';
+import { AlertCircle, ChevronDown, X } from 'lucide-react-native';
 
 import { AppHeader } from '@/components/layout/AppHeader';
-import { Button } from '@/components/ui/Button';
-import { CategoryCard } from '@/components/ui/CategoryCard';
+import { Button, CategoryCard, EmptyState, SearchBar } from '@/components/ui';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import { ProductGrid } from '@/features/products/components/ProductGrid';
+import { ProductGridSkeleton } from '@/features/products/components/ProductGridSkeleton';
+import { SortModal } from '@/features/products/components/SortModal';
+import { useProductFilters } from '@/features/products/hooks/useProductFilters';
 import { fetchProducts } from '@/features/products/services/productService';
 import type { Product } from '@/features/products/types/product';
 import { getFriendlyErrorMessage } from '@/services/apiClient';
 
 export default function ProductsScreen() {
-  const params = useLocalSearchParams<{ category?: string }>();
+  const params = useLocalSearchParams<{
+    category?: string;
+    search?: string;
+    autoFocus?: string;
+  }>();
 
-  // 1. Core Async States (Assignment 7: loading, error, success, refresh)
+  // 1. Core Async States (loading, error, success, refresh)
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [userCategory, setUserCategory] = useState<string | null>(null);
+  const [sortModalOpen, setSortModalOpen] = useState<boolean>(false);
+
+  // 2. Combined Filter State (search, category, sort, reset, active check)
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setSelectedCategory,
+    sortBy,
+    setSortBy,
+    resetFilters,
+    isFiltered,
+    filteredProducts,
+  } = useProductFilters(products);
 
   /**
-   * 2. Initial Mount Lifecycle (Assignment 7: useEffect + AbortController cleanup)
+   * 3. Initial Mount Lifecycle (useEffect + AbortController cleanup)
    * Automatically aborts in-flight fetch when navigating away from the screen.
    */
   useEffect(() => {
@@ -43,7 +62,6 @@ export default function ProductsScreen() {
         setProducts(data);
         setError(null);
       } catch (err: unknown) {
-        // Native AbortError: User navigated away; ignore silently without error flash
         if (err instanceof Error && err.name === 'AbortError') return;
         setError(getFriendlyErrorMessage(err));
       } finally {
@@ -59,11 +77,8 @@ export default function ProductsScreen() {
   }, []);
 
   /**
-   * 3. User-Triggered Reload Handler (Assignment 7: Refresh & Retry functionality)
-   *
-   * Mobile UX Best Practice (Day 6 Topic #6):
-   * When pulling down to refresh an existing catalog, if the network drops,
-   * we must NOT wipe existing products off screen. We keep them and alert the user.
+   * 4. User-Triggered Reload Handler (Refresh & Retry functionality)
+   * Keeps existing catalog visible if pull-to-refresh encounters network issues.
    */
   const handleReload = useCallback(async (isPullToRefresh = false) => {
     try {
@@ -88,40 +103,46 @@ export default function ProductsScreen() {
   }, [products.length]);
 
   /**
-   * 4. Pull-to-Refresh Trigger (Assignment 7: RefreshControl)
+   * 5. Pull-to-Refresh Trigger (RefreshControl)
    */
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     handleReload(true);
   }, [handleReload]);
 
-  // 5. Dynamically derived categories from live API products
+  // 6. Dynamically derived categories from live API products
   const categories = useMemo(() => {
     const unique = Array.from(new Set(products.map((p) => p.category)));
     return ['All', ...unique];
   }, [products]);
 
-  // 6. Selected category calculation
-  const validParamCategory =
-    params.category && categories.includes(params.category)
-      ? params.category
-      : null;
+  // 7. Human-friendly sort label matching modern e-commerce standards
+  const activeSortLabel = useMemo(() => {
+    switch (sortBy) {
+      case 'price-asc':
+        return 'Price: Low to High';
+      case 'price-desc':
+        return 'Price: High to Low';
+      case 'rating-desc':
+        return 'Top Rated';
+      default:
+        return 'Most Relevant';
+    }
+  }, [sortBy]);
 
-  const selectedCategory = userCategory ?? validParamCategory ?? 'All';
-
-  const filteredProducts = useMemo(() => {
-    if (selectedCategory === 'All') return products;
-    return products.filter((p) => p.category === selectedCategory);
-  }, [products, selectedCategory]);
-
-  // ─── STATE A: Initial Loading State ──────────────────────────────
+  // ─── STATE A: Initial Loading State (Pulsing Skeleton Grid) ─────
   if (loading && !refreshing) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <AppHeader title="All Products" showBack />
-        <View style={styles.centeredContainer}>
-          <ActivityIndicator size="large" color={Colors.light.primary} />
-          <Text style={styles.loadingText}>Loading products...</Text>
+        <View style={styles.content}>
+          <SearchBar
+            value=""
+            onChangeText={() => {}}
+            placeholder="Search products..."
+            style={styles.searchBar}
+          />
+          <ProductGridSkeleton count={6} />
         </View>
       </SafeAreaView>
     );
@@ -160,7 +181,16 @@ export default function ProductsScreen() {
       <AppHeader title="All Products" showBack />
 
       <View style={styles.content}>
-        {/* 2. Category Filters (Horizontal Scroll) */}
+        {/* 2. Elevated Real-time Search Input */}
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search products..."
+          autoFocus={params.autoFocus === 'true'}
+          style={styles.searchBar}
+        />
+
+        {/* 3. Horizontally Scrollable Category & Filter Chips */}
         {categories.length > 1 && (
           <View style={styles.categoriesWrapper}>
             <ScrollView
@@ -168,39 +198,84 @@ export default function ProductsScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoriesList}
             >
+              {/* Leading Clear All Pill (appears dynamically when filters are active) */}
+              {isFiltered && (
+                <Pressable
+                  onPress={resetFilters}
+                  style={({ pressed }) => [
+                    styles.clearAllPill,
+                    pressed && styles.clearAllPillPressed,
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear all filters"
+                >
+                  <X size={13} color={Colors.light.textSecondary} />
+                  <Text style={styles.clearAllText}>Clear All</Text>
+                </Pressable>
+              )}
+
+              {/* Category Pills with Active Highlighting */}
               {categories.map((category) => (
                 <CategoryCard
                   key={category}
                   name={category}
-                  isSelected={selectedCategory === category}
-                  onSelect={setUserCategory}
+                  isSelected={
+                    selectedCategory.toLowerCase() === category.toLowerCase()
+                  }
+                  onSelect={setSelectedCategory}
                 />
               ))}
             </ScrollView>
           </View>
         )}
 
-        {/* 3. Live Product Count Update Bar */}
-        <View style={styles.countRow}>
-          <Text style={styles.countText}>
-            Showing <Text style={styles.countBold}>{filteredProducts.length}</Text>{' '}
-            {filteredProducts.length === 1 ? 'product' : 'products'}
+        {/* 4. Streamlined Results & Interactive Sort Row (e-commerce pattern) */}
+        <View style={styles.metaRow}>
+          <Text style={styles.resultsCount}>
+            <Text style={styles.resultsCountBold}>{filteredProducts.length}</Text>{' '}
+            {filteredProducts.length === 1 ? 'result' : 'results'} sorted by{' '}
           </Text>
 
-          {selectedCategory !== 'All' && (
-            <View style={styles.activePill}>
-              <Text style={styles.activePillText}>{selectedCategory}</Text>
-            </View>
-          )}
+          <Pressable
+            onPress={() => setSortModalOpen(true)}
+            hitSlop={8}
+            style={styles.sortTrigger}
+            accessibilityRole="button"
+            accessibilityLabel={`Sorted by ${activeSortLabel}. Tap to change.`}
+          >
+            <Text style={styles.sortHighlight}>{activeSortLabel}</Text>
+            <ChevronDown size={14} color={Colors.light.primary} />
+          </Pressable>
         </View>
 
-        {/* 4. Reusable FlatList Product Grid with Pull-to-Refresh */}
+        {/* 5. Reusable FlatList Product Grid with Empty State & Pull-to-Refresh */}
         <ProductGrid
           products={filteredProducts}
           refreshing={refreshing}
           onRefresh={onRefresh}
+          ListEmptyComponent={
+            <EmptyState
+              title="No products found"
+              message={
+                searchQuery.trim()
+                  ? `No products matching "${searchQuery}"${
+                      selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''
+                    }.`
+                  : `No products available in ${selectedCategory}.`
+              }
+              onAction={resetFilters}
+            />
+          }
         />
       </View>
+
+      {/* 6. Sort Modal Action Sheet */}
+      <SortModal
+        visible={sortModalOpen}
+        activeSort={sortBy}
+        onSelectSort={setSortBy}
+        onClose={() => setSortModalOpen(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -215,6 +290,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.two,
+  },
+  searchBar: {
+    marginBottom: Spacing.two,
   },
   centeredContainer: {
     flex: 1,
@@ -260,31 +338,49 @@ const styles = StyleSheet.create({
   categoriesList: {
     paddingVertical: Spacing.half,
   },
-  countRow: {
+  clearAllPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.two,
+    gap: Spacing.xs,
+    backgroundColor: Colors.light.backgroundElement,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radius.pill,
+    marginRight: Spacing.two,
   },
-  countText: {
+  clearAllPillPressed: {
+    opacity: 0.7,
+  },
+  clearAllText: {
+    color: Colors.light.text,
+    fontSize: Typography.caption,
+    fontWeight: '600',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.two,
+    paddingVertical: Spacing.xs,
+  },
+  resultsCount: {
     fontSize: Typography.small,
     color: Colors.light.textSecondary,
     fontWeight: '500',
   },
-  countBold: {
+  resultsCountBold: {
     fontWeight: '700',
     color: Colors.light.text,
   },
-  activePill: {
-    backgroundColor: Colors.light.backgroundElement,
-    paddingVertical: Spacing.xxs,
-    paddingHorizontal: Spacing.two,
-    borderRadius: Radius.pill,
+  sortTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
-  activePillText: {
-    fontSize: Typography.caption,
+  sortHighlight: {
+    fontSize: Typography.small,
     fontWeight: '700',
     color: Colors.light.primary,
   },
 });
-
