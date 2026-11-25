@@ -181,9 +181,9 @@ npx eslint src
 - **The Problem**: Showing a button called "Default" or "Featured" to shoppers looks unnatural and clutters the screen with an option that doesn't actually filter anything.
 - **The Decision**: We model active sort as `ProductSortOption | null`. When `sortBy` is `null`, the natural catalog order is displayed. Tapping an active sort chip toggles it back to `null`, giving shoppers an intuitive 1-tap way to clear their sort.
 
-### 5. Cross-Platform SearchBar (The Android vs. iOS Clear Button)
+### 5. Cross-Platform SearchBar (Clear Button & Keyboard Blur)
 - **The Platform Gotcha**: iOS `TextInput` has a native `clearButtonMode="while-editing"`, but Android completely lacks this prop. Relying on native clear buttons results in Android users having no way to quickly clear their search text.
-- **The Decision**: We built a custom `SearchBar` with a styled `Pressable` clear (`X`) button that appears when text is typed. This gives iOS and Android the exact same 1-tap clear capability, while configuring mobile keyboard flags (`returnKeyType="search"`, `autoCorrect={false}`, `autoCapitalize="none"`).
+- **The Decision**: We built a custom `SearchBar` with a styled `Pressable` clear (`X`) button that appears when text is typed. This gives iOS and Android the exact same 1-tap clear capability, while configuring mobile keyboard flags (`returnKeyType="search"`, `autoCorrect={false}`, `autoCapitalize="none"`). Furthermore, tapping `X` calls `inputRef.current?.blur()` and `Keyboard.dismiss()`, immediately dismissing the mobile keyboard so shoppers instantly regain full-screen view of the unfiltered product grid.
 
 ### 6. Keeping Filters Accessible During Empty States (`ListEmptyComponent`)
 - **The UX Mistake**: When 0 products match, novice apps often replace the entire screen with an empty view, hiding the search bar and category chips. The user is trapped and forced to press a reset button just to fix a typo.
@@ -201,9 +201,12 @@ npx eslint src
 - **The Problem**: A spinning circle on a blank screen increases perceived wait times by 40% because users focus purely on the wait. When data finally arrives, the sudden appearance of 2-column cards causes visual layout shock.
 - **The Decision**: We built `ProductCardSkeleton` and `ProductGridSkeleton` with gentle 60fps native pulse animations (`Animated` with `useNativeDriver: true`). Shoppers immediately see the 2-column structure of the store, and live products swap in smoothly without layout shift.
 
-### 10. Seamless Header Search Transition (`autoFocus` Flow)
-- **The UX Friction**: When tapping a search icon in the top header, the user signals immediate intent: *I want to search, so let me type!* If the catalog opens with the keyboard down, the user is forced to tap the search input a frustrating second time.
-- **The Decision**: Tapping the header's search icon passes `params: { autoFocus: 'true' }`. The `SearchBar` on `/products` forwards `autoFocus` to React Native's native `<TextInput>`, automatically sliding the mobile keyboard up ready for typing. Normal browsing navigation (via Hero or Category cards) keeps `autoFocus` disabled for relaxed browsing.
+### 10. Seamless Header Search Transition (`autoFocus` & Persistent Shell)
+- **The UX Friction**: When tapping a search icon in the top header, the user signals immediate intent: *I want to search, so let me type!* If the catalog opens with the keyboard down, the user is forced to tap the search input a frustrating second time. Furthermore, if the page remounts controls when switching from loading to loaded, the keyboard stutters and dismisses itself.
+- **The Solutions**:
+  - **Screen Transition Timing Guard**: React Navigation / Expo Router screen animations take 150–250ms. Requesting native keyboard focus before the screen is attached to the native window often gets ignored by mobile OS keyboard managers. In `SearchBar`, when `autoFocus={true}` is received, an `inputRef` calls `.focus()` after a brief 100ms delay to guarantee the native keyboard glides up cleanly every time.
+  - **Persistent Screen Shell**: Instead of replacing the entire screen with a full-page loading placeholder, the screen shell (`AppHeader`, `SearchBar`, category chips, and result meta bar) stays permanently mounted. Only the catalog area swaps between `ProductGridSkeleton` and `ProductGrid`. This ensures the search bar never unmounts, preserving both focus and any characters the user begins typing.
+  - **React 19 Native Ref Typing**: Typed using `ComponentRef<typeof TextInput>` (`ComponentRef` officially replaces the deprecated `ElementRef` in React 19) to ensure clean, future-proof type safety.
 
 ### 11. Automatic Category Carousel Auto-Scroll (`onLayout` + `scrollTo`)
 - **The UX Friction**: When a user selects a category from Home that sits further down the list (e.g. *Women's Fashion* is the 5th chip), horizontal `ScrollView` by default mounts at $x = 0$. The active chip sits hidden off-screen to the right, forcing users to manually swipe right just to see their active selection.

@@ -1,5 +1,5 @@
 import {
-  ElementRef,
+  ComponentRef,
   useCallback,
   useEffect,
   useMemo,
@@ -57,7 +57,7 @@ export default function ProductsScreen() {
   } = useProductFilters(products);
 
   // 3. Category Horizontal Auto-Scroll (Centers selected category on mount or tap)
-  const categoryScrollRef = useRef<ElementRef<typeof ScrollView>>(null);
+  const categoryScrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
   const categoryOffsets = useRef<Record<string, number>>({});
 
   const scrollToCategory = useCallback((cat: string) => {
@@ -156,25 +156,7 @@ export default function ProductsScreen() {
     }
   }, [sortBy]);
 
-  // ─── STATE A: Initial Loading State (Pulsing Skeleton Grid) ─────
-  if (loading && !refreshing) {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <AppHeader title="All Products" showBack />
-        <View style={styles.content}>
-          <SearchBar
-            value=""
-            onChangeText={() => { }}
-            placeholder="Search products..."
-            style={styles.searchBar}
-          />
-          <ProductGridSkeleton count={6} />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // ─── STATE B: Full-Page Error State with Retry (Only if initial load fails and 0 products exist) ───
+  // ─── STATE A: Full-Page Error State with Retry (Only if initial load fails and 0 products exist) ───
   if (error && !loading && products.length === 0) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -200,7 +182,7 @@ export default function ProductsScreen() {
     );
   }
 
-  // ─── STATE C: Success State with Products Grid ───────────────────
+  // ─── STATE B: Main Catalog View (Shell stays permanently mounted for stable search focus) ───
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       {/* 1. Header with Back Button */}
@@ -297,24 +279,29 @@ export default function ProductsScreen() {
           </Pressable>
         </View>
 
-        {/* 5. Reusable FlatList Product Grid with Empty State & Pull-to-Refresh */}
-        <ProductGrid
-          products={filteredProducts}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          ListEmptyComponent={
-            <EmptyState
-              title="No products found"
-              message={
-                searchQuery.trim()
-                  ? `No products matching "${searchQuery}"${selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''
-                  }.`
-                  : `No products available in ${selectedCategory}.`
-              }
-              onAction={handleResetFilters}
-            />
-          }
-        />
+        {/* 5. Product Grid (Pulsing Skeleton during initial fetch, or Virtualized Grid once loaded) */}
+        {loading && !refreshing ? (
+          <ProductGridSkeleton count={6} />
+        ) : (
+          <ProductGrid
+            products={filteredProducts}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            ListEmptyComponent={
+              <EmptyState
+                title="No products found"
+                message={
+                  searchQuery.trim()
+                    ? `No products matching "${searchQuery}"${
+                        selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''
+                      }.`
+                    : `No products available in ${selectedCategory}.`
+                }
+                onAction={handleResetFilters}
+              />
+            }
+          />
+        )}
       </View>
 
       {/* 6. Sort Modal Action Sheet */}

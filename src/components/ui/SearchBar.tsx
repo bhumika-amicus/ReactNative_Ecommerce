@@ -1,3 +1,4 @@
+import { ComponentRef, useEffect, useRef } from 'react';
 import {
   Keyboard,
   Pressable,
@@ -41,8 +42,22 @@ export function SearchBar({
   onSubmitEditing,
   style,
 }: SearchBarProps) {
+  const inputRef = useRef<ComponentRef<typeof TextInput>>(null);
+
+  useEffect(() => {
+    if (autoFocus) {
+      // 100ms delay ensures native screen transition finishes before requesting keyboard focus
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus]);
+
   const handleClear = () => {
     onChangeText('');
+    inputRef.current?.blur();
+    Keyboard.dismiss();
     if (onClear) onClear();
   };
 
@@ -62,6 +77,7 @@ export function SearchBar({
 
       {/* 2. Optimized Native TextInput */}
       <TextInput
+        ref={inputRef}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
